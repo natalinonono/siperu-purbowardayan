@@ -38,8 +38,28 @@ const BookingSchema = new mongoose.Schema({
 
 const Booking = mongoose.models.Booking || mongoose.model('Booking', BookingSchema);
 
-// In-Memory Cloud Storage fallback for Vercel Serverless
-let memoryBookings = [];
+// In-Memory Cloud Storage fallback with initial state
+const INITIAL_DEFAULT_BOOKINGS = [
+    {
+        id: "b_demo_1",
+        user_id: "u_demo_omk",
+        user_name: "Ignatius Budi",
+        user_email: "jemaat.aktif@gmail.com",
+        room_id: 1,
+        event_name: "Latihan Koor & Rapat OMK",
+        description: "Persiapan tugas koor Misa Minggu",
+        applicant: "OMK Paroki",
+        start_time: "2026-08-31T09:00",
+        end_time: "2026-08-31T11:30",
+        status: "APPROVED",
+        photo_before_url: "",
+        photo_after_url: "",
+        rejection_reason: "",
+        created_at: "2026-08-30T10:00:00.000Z"
+    }
+];
+
+let memoryBookings = [...INITIAL_DEFAULT_BOOKINGS];
 
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');

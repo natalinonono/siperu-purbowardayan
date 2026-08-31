@@ -212,48 +212,58 @@ function initRealtimeSSE() {
             const res = await fetch('/api/bookings');
             if (res.ok) {
                 const fresh = await res.json();
-                const previousCount = bookings.length;
-                const freshJson = JSON.stringify(fresh);
-                const currentJson = JSON.stringify(bookings);
                 
-                if (freshJson !== currentJson) {
-                    const oldBookings = [...bookings];
-                    bookings = fresh;
-                    localStorage.setItem('spmr_cached_bookings', freshJson);
+                // JIKA SERVER MENGEMBALIKAN KOSONG TAPI KITA PUNYA DATA LOKAL: SINKRONKAN DATA KITA KE SERVER
+                if (Array.isArray(fresh) && fresh.length === 0 && bookings.length > 0) {
+                    saveBookingsToStorage();
+                    return;
+                }
 
-                    // Deteksi jika ada booking baru dari device lain
-                    if (bookings.length > previousCount) {
-                        const newEntries = bookings.filter(b => !oldBookings.some(o => o.id === b.id));
-                        newEntries.forEach(nb => {
-                            const roomObj = ROOMS_DATA.find(r => r.id === nb.room_id);
-                            const rName = roomObj ? roomObj.room_name : 'Ruangan';
-                            
-                            if (activeRole === 'ADMIN') {
-                                addNotification('Permohonan Baru (Admin)', `${nb.applicant || 'Jemaat'} mengajukan ${rName} untuk "${nb.event_name}".`, 'update', 'ADMIN');
-                            }
-                        });
-                    } else {
-                        // Deteksi perubahan status (misal approval / reject / revisi)
-                        bookings.forEach(fb => {
-                            const oldB = oldBookings.find(o => o.id === fb.id);
-                            if (oldB && oldB.status !== fb.status) {
-                                if (activeRole === 'USER' && currentUser && fb.user_email === currentUser.email) {
-                                    if (fb.status === 'APPROVED') {
-                                        addNotification('Pengajuan Disetujui', `Permohonan "${fb.event_name}" telah disetujui oleh Admin.`, 'approved', 'USER', currentUser.email);
-                                    } else if (fb.status === 'REJECTED') {
-                                        addNotification('Pengajuan Ditolak', `Permohonan "${fb.event_name}" ditolak: ${fb.rejection_reason || '-'}`, 'rejected', 'USER', currentUser.email);
-                                    }
-                                } else if (activeRole === 'ADMIN' && fb.status === 'REVISION') {
-                                    addNotification('Permohonan Revisi', `Peminjaman "${fb.event_name}" telah direvisi oleh pemohon dan menunggu persetujuan ulang.`, 'update', 'ADMIN');
+                if (Array.isArray(fresh) && fresh.length > 0) {
+                    const merged = mergeBookingsData(fresh, bookings);
+                    const mergedJson = JSON.stringify(merged);
+                    const currentJson = JSON.stringify(bookings);
+                    
+                    if (mergedJson !== currentJson) {
+                        const oldBookings = [...bookings];
+                        const previousCount = oldBookings.length;
+                        bookings = merged;
+                        localStorage.setItem('spmr_cached_bookings', mergedJson);
+
+                        // Deteksi jika ada booking baru dari device lain
+                        if (bookings.length > previousCount) {
+                            const newEntries = bookings.filter(b => !oldBookings.some(o => o.id === b.id));
+                            newEntries.forEach(nb => {
+                                const roomObj = ROOMS_DATA.find(r => r.id === nb.room_id);
+                                const rName = roomObj ? roomObj.room_name : 'Ruangan';
+                                
+                                if (activeRole === 'ADMIN') {
+                                    addNotification('Permohonan Baru (Admin)', `${nb.applicant || 'Jemaat'} mengajukan ${rName} untuk "${nb.event_name}".`, 'update', 'ADMIN');
                                 }
-                            }
-                        });
-                    }
+                            });
+                        } else {
+                            // Deteksi perubahan status (misal approval / reject / revisi)
+                            bookings.forEach(fb => {
+                                const oldB = oldBookings.find(o => o.id === fb.id);
+                                if (oldB && oldB.status !== fb.status) {
+                                    if (activeRole === 'USER' && currentUser && fb.user_email === currentUser.email) {
+                                        if (fb.status === 'APPROVED') {
+                                            addNotification('Pengajuan Disetujui', `Permohonan "${fb.event_name}" telah disetujui oleh Admin.`, 'approved', 'USER', currentUser.email);
+                                        } else if (fb.status === 'REJECTED') {
+                                            addNotification('Pengajuan Ditolak', `Permohonan "${fb.event_name}" ditolak: ${fb.rejection_reason || '-'}`, 'rejected', 'USER', currentUser.email);
+                                        }
+                                    } else if (activeRole === 'ADMIN' && fb.status === 'REVISION') {
+                                        addNotification('Permohonan Revisi', `Peminjaman "${fb.event_name}" telah direvisi oleh pemohon dan menunggu persetujuan ulang.`, 'update', 'ADMIN');
+                                    }
+                                }
+                            });
+                        }
 
-                    renderCalendar();
-                    renderRoomFilters();
-                    renderMyBookings();
-                    renderAdminApprovals();
+                        renderCalendar();
+                        renderRoomFilters();
+                        renderMyBookings();
+                        renderAdminApprovals();
+                    }
                 }
             }
         } catch (e) {}
