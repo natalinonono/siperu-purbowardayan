@@ -27,6 +27,42 @@ let currentCalendarDate = new Date(); // Hari ini (dinamis)
 let currentCalendarView = 'month'; // month, week, day
 let activeFilters = []; // Room IDs yang dicentang. Jika kosong, berarti tampilkan semua.
 
+// Smart Data Protection & Merge Engine: Menjamin data booking tidak pernah hilang saat update/redeploy kode
+function mergeBookingsData(primaryList, fallbackList) {
+    if (!Array.isArray(primaryList)) primaryList = [];
+    if (!Array.isArray(fallbackList)) fallbackList = [];
+
+    const map = new Map();
+
+    // 1. Masukkan data fallback lokal terlebih dahulu
+    fallbackList.forEach(item => {
+        if (item && item.id) map.set(item.id, item);
+    });
+
+    // 2. Timpa / gabungkan dengan data primer server (jika ada pembaruan status lebih baru)
+    primaryList.forEach(item => {
+        if (item && item.id) {
+            const existing = map.get(item.id);
+            if (!existing) {
+                map.set(item.id, item);
+            } else {
+                // Pertahankan status yang paling mutakhir dan jangan hilangkan field penting
+                map.set(item.id, {
+                    ...existing,
+                    ...item,
+                    previous_version: item.previous_version || existing.previous_version || null,
+                    revision_reason: item.revision_reason || existing.revision_reason || '',
+                    cancellation_reason: item.cancellation_reason || existing.cancellation_reason || '',
+                    photo_before_url: item.photo_before_url || existing.photo_before_url || '',
+                    photo_after_url: item.photo_after_url || existing.photo_after_url || ''
+                });
+            }
+        }
+    });
+
+    return Array.from(map.values());
+}
+
 // Foto Simulasi Default (Base64 Mocks untuk before/after agar tampilan langsung terlihat bagus)
 const MOCK_DIRTY_PHOTO = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'><rect width='100%' height='100%' fill='%23f1f5f9'/><text x='50%27' y='45%27' font-family='sans-serif' font-size='16' fill='%23ef4444' text-anchor='middle' font-weight='bold'>MOCK FOTO: BEFORE-USE</text><text x='50%27' y='55%27' font-family='sans-serif' font-size='12' fill='%2364748b' text-anchor='middle'>Kursi berantakan %26 sisa kertas di meja</text><circle cx='100' cy='200' r='10' fill='%2394a3b8'/><circle cx='280' cy='180' r='15' fill='%2394a3b8'/><line x1='120' y1='220' x2='250' y2='220' stroke='%23475569' stroke-width='3'/></svg>";
 const MOCK_CLEAN_PHOTO = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'><rect width='100%' height='100%' fill='%23e6f4ea'/><text x='50%27' y='45%27' font-family='sans-serif' font-size='16' fill='%2310b981' text-anchor='middle' font-weight='bold'>MOCK FOTO: AFTER-USE</text><text x='50%27' y='55%27' font-family='sans-serif' font-size='12' fill='%23065f46' text-anchor='middle'>Ruangan bersih %26 kursi tertata rapi</text><line x1='50' y1='220' x2='350' y2='220' stroke='%2310b981' stroke-width='4'/><path d='M200 120 L210 140 L230 140 L215 155 L220 175 L200 160 L180 175 L185 155 L170 140 L190 140 Z' fill='%23eab308'/></svg>";
@@ -495,19 +531,35 @@ async function initApp() {
     renderNotifications();
     initRealtimeSSE();
 
-    // 3a. Ambil data dari server API dengan fallback localStorage
+    // 3a. Ambil data dari server API dengan perlindungan anti-hilang / anti-corrupt (Smart Merge & Auto-Backup)
     try {
         const response = await fetch('/api/bookings');
         if (response.ok) {
-            bookings = await response.json();
-            // Cache ke localStorage
+            const serverBookings = await response.json();
+            const localCachedRaw = localStorage.getItem('spmr_cached_bookings');
+            const localCached = localCachedRaw ? JSON.parse(localCachedRaw) : [];
+
+            // Gabungkan data server dan cache lokal secara cerdas (Smart Merge agar tidak ada booking yang hilang)
+            if (Array.isArray(serverBookings) && serverBookings.length > 0) {
+                bookings = mergeBookingsData(serverBookings, localCached);
+            } else if (localCached && localCached.length > 0) {
+                // Jika server kosong karena redeploy, restore dari cache lokal
+                bookings = localCached;
+                // Sync kembali ke server agar server terisi data yang tersimpan
+                saveBookingsToStorage();
+            } else {
+                bookings = [];
+            }
+
+            // Simpan backup permanen di localStorage
             localStorage.setItem('spmr_cached_bookings', JSON.stringify(bookings));
+            localStorage.setItem('spmr_bookings_backup_' + new Date().toISOString().split('T')[0], JSON.stringify(bookings));
         } else {
             const cached = localStorage.getItem('spmr_cached_bookings');
             bookings = cached ? JSON.parse(cached) : [];
         }
     } catch (err) {
-        console.warn("Server API tidak terjangkau, memuat data dari offline storage:", err);
+        console.warn("Server API tidak terjangkau, memuat data dari offline storage aman:", err);
         const cached = localStorage.getItem('spmr_cached_bookings');
         bookings = cached ? JSON.parse(cached) : [];
     }
