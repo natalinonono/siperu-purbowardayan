@@ -655,6 +655,14 @@
                         </div>
                     </div>
 
+                    <!-- Input Alasan Revisi (Muncul otomatis saat mengedit booking Approved/Revision) -->
+                    <div id="booking-revision-reason-group" class="form-group span-2 hidden margin-top-sm">
+                        <label for="booking-revision-reason" style="color:var(--brand-gold); font-weight:700;">
+                            <i data-lucide="edit-3" style="width:14px; height:14px; vertical-align:middle;"></i> Alasan Pengajuan Revisi: <span class="required">*</span>
+                        </label>
+                        <textarea id="booking-revision-reason" class="form-control" rows="2" placeholder="Wajib diisi: Jelaskan mengapa Anda mengubah jadwal/ruangan ini..."></textarea>
+                    </div>
+
                     <!-- Alert Box for Collision / Warnings -->
                     <div id="booking-error-alert" class="alert alert-danger hidden margin-top-sm">
                         <i data-lucide="alert-triangle"></i>
@@ -663,7 +671,7 @@
 
                     <div id="booking-revision-info" class="alert alert-info hidden margin-top-sm">
                         <i data-lucide="info"></i>
-                        <span><strong>Catatan Revisi:</strong> Pengeditan pada peminjaman yang telah <strong>APPROVED</strong> akan diajukan sebagai <strong>Permohonan Revisi</strong> baru dan memerlukan persetujuan ulang dari Admin.</span>
+                        <span><strong>Catatan Revisi:</strong> Pengeditan pada peminjaman yang telah <strong>APPROVED</strong> akan diajukan sebagai <strong>Permohonan Revisi</strong> baru dan memerlukan persetujuan ulang dari Admin beserta alasan perubahannya.</span>
                     </div>
 
                     <div class="modal-footer margin-top">
@@ -673,6 +681,28 @@
                         <button type="submit" class="btn btn-primary hidden" id="btn-booking-submit">Kirim Pengajuan</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2B: Modal Alasan Pembatalan (User & Admin Wajib Isi Alasan) -->
+    <div id="cancel-reason-modal" class="modal-backdrop hidden">
+        <div class="modal-card modal-sm">
+            <div class="modal-header">
+                <h3><i data-lucide="trash"></i> Pembatalan Peminjaman</h3>
+                <button class="modal-close-btn" onclick="closeModal('cancel-reason-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="cancel-booking-id">
+                <p class="text-xs text-muted margin-bottom-sm">Apakah Anda yakin ingin membatalkan jadwal peminjaman ini?</p>
+                <div class="form-group">
+                    <label for="cancel-reason-text">Alasan Pembatalan: <span class="required">*</span></label>
+                    <textarea id="cancel-reason-text" class="form-control" rows="3" placeholder="Wajib diisi: Contoh acara diundur / dialihkan ke tempat lain..." required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeModal('cancel-reason-modal')">Tutup</button>
+                    <button class="btn btn-danger" onclick="submitCancelWithReason()">Konfirmasi Batal</button>
+                </div>
             </div>
         </div>
     </div>
@@ -801,6 +831,12 @@
                             <p id="detail-rejection-reason">Alasan penolakan di sini...</p>
                         </div>
 
+                        <!-- Blok Alasan Pembatalan (Cancel) -->
+                        <div id="detail-cancel-block" class="alert alert-danger margin-top hidden" style="background:rgba(239, 68, 68, 0.15); border-color:#EF4444;">
+                            <h4 class="margin-bottom-xs" style="color:#EF4444;"><i data-lucide="trash"></i> Alasan Pembatalan:</h4>
+                            <p id="detail-cancel-reason" style="color:var(--text-main); font-weight:500;">Alasan pembatalan di sini...</p>
+                        </div>
+
                         <!-- Container Detail Riwayat Revisi (Sebelum vs Sesudah) -->
                         <div id="detail-revision-block" class="revision-diff-box hidden">
                             <div class="diff-header">
@@ -809,6 +845,10 @@
                                     <span>Riwayat Perubahan / Revisi</span>
                                 </div>
                                 <span class="badge status-badge revision">Perlu Persetujuan</span>
+                            </div>
+                            <div id="detail-revision-reason-wrap" style="padding:10px 14px; background:rgba(245,158,11,0.08); border-bottom:1px solid var(--brand-border);">
+                                <strong style="color:var(--brand-gold); font-size:0.8rem;"><i data-lucide="info"></i> Alasan Revisi dari Pemohon:</strong>
+                                <p id="detail-revision-reason-text" style="font-size:0.8rem; margin-top:2px; color:var(--text-main);">-</p>
                             </div>
                             <table class="diff-table">
                                 <thead>

@@ -1598,14 +1598,24 @@ function openBookingModal(bookingId = '', presetDate = '') {
         document.getElementById('booking-end-time').value = endPart;
         document.getElementById('booking-desc').value = booking.description;
 
-        // Berikan warning jika status sudah APPROVED
-        if (booking.status === 'APPROVED' && activeRole !== 'ADMIN') {
+        // Berikan warning & input alasan jika status sudah APPROVED atau REVISION
+        const revReasonGroup = document.getElementById('booking-revision-reason-group');
+        const revReasonInput = document.getElementById('booking-revision-reason');
+        if ((booking.status === 'APPROVED' || booking.status === 'REVISION') && activeRole !== 'ADMIN') {
             document.getElementById('booking-revision-info').classList.remove('hidden');
+            if (revReasonGroup) revReasonGroup.classList.remove('hidden');
+            if (revReasonInput) revReasonInput.value = booking.revision_reason || '';
+        } else {
+            if (revReasonGroup) revReasonGroup.classList.add('hidden');
+            if (revReasonInput) revReasonInput.value = '';
         }
     } else {
         // Create Mode
         titleEl.textContent = "Formulir Pengajuan Peminjaman";
         document.getElementById('booking-applicant').value = currentUser.name;
+
+        const revReasonGroup = document.getElementById('booking-revision-reason-group');
+        if (revReasonGroup) revReasonGroup.classList.add('hidden');
 
         // FIX: gunakan presetDate dari klik sel kalender, atau hari ini sebagai fallback
         document.getElementById('booking-date').value = presetDate || todayStr;
@@ -1625,6 +1635,7 @@ function handleBookingSubmit(event) {
     const startTimeStr = document.getElementById('booking-start-time').value;
     const endTimeStr = document.getElementById('booking-end-time').value;
     const description = document.getElementById('booking-desc').value.trim();
+    const revisionReason = (document.getElementById('booking-revision-reason') ? document.getElementById('booking-revision-reason').value.trim() : '');
 
     const startDateTime = `${date}T${startTimeStr}`;
     const endDateTime = `${date}T${endTimeStr}`;
@@ -1665,6 +1676,11 @@ function handleBookingSubmit(event) {
         } else {
             // Aturan Peminjam (User)
             if (originalBooking.status === 'APPROVED' || originalBooking.status === 'REVISION') {
+                if (!revisionReason) {
+                    showBookingError("Wajib mengisi alasan pengajuan revisi!");
+                    return;
+                }
+
                 // Aturan edit APPROVED: Berubah jadi Permohonan Revisi dengan snapshot data sebelumnya
                 const prevSnapshot = originalBooking.previous_version || {
                     event_name: originalBooking.event_name,
@@ -1683,6 +1699,7 @@ function handleBookingSubmit(event) {
                     start_time: startDateTime,
                     end_time: endDateTime,
                     description: description,
+                    revision_reason: revisionReason,
                     previous_version: prevSnapshot,
                     status: 'REVISION' // Membutuhkan persetujuan ulang
                 };
@@ -1809,16 +1826,37 @@ function openDetailModal(bookingId) {
     if (booking.status === 'REJECTED' && booking.rejection_reason) {
         rejectBlock.classList.remove('hidden');
         document.getElementById('detail-rejection-reason').textContent = booking.rejection_reason;
-    } else {
+    } else if (rejectBlock) {
         rejectBlock.classList.add('hidden');
+    }
+
+    // Alasan pembatalan (CANCELLED) jika ada
+    const cancelBlock = document.getElementById('detail-cancel-block');
+    if (booking.status === 'CANCELLED' && booking.cancellation_reason) {
+        if (cancelBlock) {
+            cancelBlock.classList.remove('hidden');
+            document.getElementById('detail-cancel-reason').textContent = booking.cancellation_reason;
+        }
+    } else if (cancelBlock) {
+        cancelBlock.classList.add('hidden');
     }
 
     // Riwayat Komparasi Sebelum vs Sesudah Revisi (Bagian 4)
     const revBlock = document.getElementById('detail-revision-block');
     const revTbody = document.getElementById('detail-revision-diff-tbody');
+    const revReasonText = document.getElementById('detail-revision-reason-text');
+    const revReasonWrap = document.getElementById('detail-revision-reason-wrap');
+
     if (booking.previous_version && revBlock && revTbody) {
         revBlock.classList.remove('hidden');
         revTbody.innerHTML = '';
+
+        if (booking.revision_reason && revReasonText && revReasonWrap) {
+            revReasonWrap.classList.remove('hidden');
+            revReasonText.textContent = booking.revision_reason;
+        } else if (revReasonWrap) {
+            revReasonWrap.classList.add('hidden');
+        }
 
         const prev = booking.previous_version;
         const prevRoom = ROOMS_DATA.find(r => r.id === prev.room_id) || { room_name: 'Ruangan' };
@@ -2018,13 +2056,13 @@ function renderMyBookings() {
         const afterUploaded = !!b.photo_after_url;
 
         // Button Aksi logika
-        let actionButtons = '';
+        let actionButtons = `<button class="btn btn-secondary btn-xs" onclick="openDetailModal('${b.id}')"><i data-lucide="info"></i> Detail</button> `;
         if (b.status === 'PENDING' || b.status === 'APPROVED' || b.status === 'REVISION') {
             actionButtons += `<button class="btn btn-secondary btn-xs" onclick="openBookingModal('${b.id}')"><i data-lucide="edit-3"></i> Edit</button> `;
         }
         const canCancel = activeRole === 'ADMIN'
             ? (b.status === 'PENDING' || b.status === 'APPROVED' || b.status === 'REVISION')
-            : (b.status === 'PENDING');
+            : (b.status === 'PENDING' || b.status === 'APPROVED' || b.status === 'REVISION');
         if (canCancel) {
             actionButtons += `<button class="btn btn-danger btn-xs" onclick="cancelBooking('${b.id}')"><i data-lucide="trash"></i> Batal</button>`;
         }
@@ -2063,19 +2101,45 @@ function renderMyBookings() {
 }
 
 function cancelBooking(bookingId) {
-    if (!confirm("Apakah Anda yakin ingin membatalkan peminjaman ini?")) return;
+    const booking = bookings.find(b => b.id === bookingId);
+    if (!booking) return;
+
+    const cancelModal = document.getElementById('cancel-reason-modal');
+    const cancelIdInput = document.getElementById('cancel-booking-id');
+    const cancelReasonInput = document.getElementById('cancel-reason-text');
+
+    if (cancelModal && cancelIdInput && cancelReasonInput) {
+        cancelIdInput.value = bookingId;
+        cancelReasonInput.value = '';
+        cancelModal.classList.remove('hidden');
+    }
+}
+
+function submitCancelWithReason() {
+    const bookingId = document.getElementById('cancel-booking-id').value;
+    const reason = document.getElementById('cancel-reason-text').value.trim();
+
+    if (!reason) {
+        alert("Wajib mengisi alasan pembatalan!");
+        return;
+    }
 
     const index = bookings.findIndex(b => b.id === bookingId);
     if (index === -1) return;
 
-    if (activeRole === 'ADMIN') {
-        // Admin menghapus permanen atau bisa cancel
-        bookings.splice(index, 1);
-    } else {
-        // User hanya membatalkan status menjadi CANCELLED
-        bookings[index].status = 'CANCELLED';
+    bookings[index].status = 'CANCELLED';
+    bookings[index].cancellation_reason = reason;
+
+    const evName = bookings[index].event_name;
+    const applicant = bookings[index].applicant || 'Pemohon';
+
+    addNotification('Peminjaman Dibatalkan', `Peminjaman "${evName}" dibatalkan dengan alasan: ${reason}`, 'rejected', 'ADMIN');
+    
+    if (currentUser && bookings[index].user_email === currentUser.email) {
+        addNotification('Peminjaman Dibatalkan', `Peminjaman "${evName}" Anda telah dibatalkan.`, 'rejected', 'USER', currentUser.email);
     }
 
+    closeModal('cancel-reason-modal');
     saveBookingsToStorage();
     renderCalendar();
     renderMyBookings();
@@ -2330,6 +2394,7 @@ function renderAdminApprovals() {
                 <span class="status-badge ${b.status.toLowerCase()}">${b.status}</span>
             </td>
             <td>
+                <button class="btn btn-secondary btn-xs" onclick="openDetailModal('${b.id}')"><i data-lucide="info"></i> Detail</button>
                 <button class="btn btn-primary btn-xs" onclick="approveBooking('${b.id}')"><i data-lucide="check"></i> Setujui</button>
                 <button class="btn btn-danger btn-xs" onclick="openRejectModal('${b.id}')"><i data-lucide="x"></i> Tolak</button>
             </td>
