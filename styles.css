@@ -2283,6 +2283,19 @@ textarea.form-control {
     flex-direction: column;
 }
 
+@media (max-width: 768px) {
+    .notification-panel {
+        position: fixed !important;
+        top: 65px !important;
+        left: 12px !important;
+        right: 12px !important;
+        width: calc(100vw - 24px) !important;
+        max-width: calc(100vw - 24px) !important;
+        border-radius: 14px !important;
+        max-height: 80vh !important;
+    }
+}
+
 [data-theme="light"] .notification-panel {
     background: #ffffff;
     box-shadow: 0 15px 35px -5px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.06);
@@ -3112,31 +3125,40 @@ textarea.form-control {
         border-radius: 12px;
     }
 
-    .calendar-header {
+    .calendar-controls {
         display: flex;
         flex-direction: column;
         align-items: stretch;
         gap: 10px;
-        margin-bottom: 12px;
+        margin-bottom: 14px;
     }
 
-    .calendar-nav-group {
+    .calendar-nav {
         display: flex;
-        justify-content: space-between;
+        flex-wrap: wrap;
         align-items: center;
+        justify-content: space-between;
+        gap: 6px;
         width: 100%;
     }
 
     .calendar-select-group {
         display: flex;
         gap: 6px;
-        width: 100%;
+        flex: 1;
     }
 
     .calendar-dropdown {
         flex: 1;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         padding: 6px 8px;
+    }
+
+    .calendar-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
     }
 
     .view-selector {
@@ -3144,14 +3166,55 @@ textarea.form-control {
         width: 100%;
         background: var(--brand-dark);
         border-radius: 8px;
-        padding: 2px;
+        padding: 3px;
+        margin-right: 0;
     }
 
     .view-btn {
         flex: 1;
         text-align: center;
-        padding: 6px 2px;
+        padding: 7px 4px;
         font-size: 0.72rem;
+    }
+
+    .calendar-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Peminjaman Saya & Admin Toolbar di HP */
+    .card-header-flex {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .section-actions-row {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .section-actions-row .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .table-toolbar {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .table-toolbar .search-input-wrap,
+    .table-toolbar .filter-select-wrap {
+        width: 100% !important;
+    }
+
+    .filter-select-wrap select {
+        width: 100%;
     }
 
     /* Kalender Grid di HP (Tidak Terpotong) */
