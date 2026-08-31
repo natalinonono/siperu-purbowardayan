@@ -265,6 +265,12 @@ h1, h2, h3, h4, h5, h6 {
     transition: all var(--transition-normal);
 }
 
+@media (max-width: 768px) {
+    .role-switcher-widget {
+        display: none !important; /* Hilangkan widget simulator di HP agar layar bersih dan tidak tertutup */
+    }
+}
+
 .role-switcher-widget.collapsed .widget-body {
     display: none;
 }
