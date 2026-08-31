@@ -170,17 +170,50 @@ function initRealtimeSSE() {
         }
     }
 
-    // High-frequency Background Poll Fallback (setiap 4 detik) untuk menjamin sinkronisasi multi-tab/multi-device
+    // High-frequency Background Poll Fallback (setiap 3 detik) untuk sinkronisasi multi-device real-time
     setInterval(async () => {
         try {
             const res = await fetch('/api/bookings');
             if (res.ok) {
                 const fresh = await res.json();
+                const previousCount = bookings.length;
                 const freshJson = JSON.stringify(fresh);
                 const currentJson = JSON.stringify(bookings);
+                
                 if (freshJson !== currentJson) {
+                    const oldBookings = [...bookings];
                     bookings = fresh;
                     localStorage.setItem('spmr_cached_bookings', freshJson);
+
+                    // Deteksi jika ada booking baru dari device lain
+                    if (bookings.length > previousCount) {
+                        const newEntries = bookings.filter(b => !oldBookings.some(o => o.id === b.id));
+                        newEntries.forEach(nb => {
+                            const roomObj = ROOMS_DATA.find(r => r.id === nb.room_id);
+                            const rName = roomObj ? roomObj.room_name : 'Ruangan';
+                            
+                            if (activeRole === 'ADMIN') {
+                                addNotification('Permohonan Baru (Admin)', `${nb.applicant || 'Jemaat'} mengajukan ${rName} untuk "${nb.event_name}".`, 'update', 'ADMIN');
+                            }
+                        });
+                    } else {
+                        // Deteksi perubahan status (misal approval / reject / revisi)
+                        bookings.forEach(fb => {
+                            const oldB = oldBookings.find(o => o.id === fb.id);
+                            if (oldB && oldB.status !== fb.status) {
+                                if (activeRole === 'USER' && currentUser && fb.user_email === currentUser.email) {
+                                    if (fb.status === 'APPROVED') {
+                                        addNotification('Pengajuan Disetujui', `Permohonan "${fb.event_name}" telah disetujui oleh Admin.`, 'approved', 'USER', currentUser.email);
+                                    } else if (fb.status === 'REJECTED') {
+                                        addNotification('Pengajuan Ditolak', `Permohonan "${fb.event_name}" ditolak: ${fb.rejection_reason || '-'}`, 'rejected', 'USER', currentUser.email);
+                                    }
+                                } else if (activeRole === 'ADMIN' && fb.status === 'REVISION') {
+                                    addNotification('Permohonan Revisi', `Peminjaman "${fb.event_name}" telah direvisi oleh pemohon dan menunggu persetujuan ulang.`, 'update', 'ADMIN');
+                                }
+                            }
+                        });
+                    }
+
                     renderCalendar();
                     renderRoomFilters();
                     renderMyBookings();
@@ -188,7 +221,7 @@ function initRealtimeSSE() {
                 }
             }
         } catch (e) {}
-    }, 4000);
+    }, 3000);
 }
 
 function addNotification(title, desc, type = 'system', targetRole = 'ALL', targetUserEmail = '') {
