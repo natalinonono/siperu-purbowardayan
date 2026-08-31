@@ -224,3 +224,5 @@ server.listen(PORT, () => {
     console.log(`Server is running at http://localhost:${PORT}/`);
     console.log(`Data booking disimpan di: ${BOOKINGS_FILE}`);
 });
+
+module.exports = server;
