@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIPERU PURBOWARDAYAN - Sistem Informasi Peminjaman Ruang</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="logo.png">
+
+    <!-- Google Identity Services (Google Sign-In SDK) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <!-- Lucide Icons (CDN + Inline SVG Engine Fallback) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script>
+        window.SVG_ICONS = {
+            'chevron-left': '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+            'chevron-right': '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>',
+            'chevron-down': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
+            'calendar': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>',
+            'clock': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+            'camera': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>',
+            'layout-dashboard': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>',
+            'bell': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
+            'moon': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>',
+            'sun': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>',
+            'plus': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>',
+            'search': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>',
+            'shield': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>',
+            'globe': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>',
+            'user': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+            'building': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M16 14h.01"/></svg>',
+            'church': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 7 4 2v13H2V9l4-2"/><path d="M14 22v-4a2 2 0 0 0-4 0v4"/><path d="M18 22V5l-6-3-6 3v17"/><path d="M12 7v5"/><path d="M10 9h4"/></svg>',
+            'log-out': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>',
+            'printer': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>',
+            'download': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>',
+            'edit-3': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+            'trash': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>',
+            'check': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+            'x': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
+            'info': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>',
+            'alert-triangle': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>',
+            'filter': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>',
+            'list': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>',
+            'share-2': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>',
+            'settings': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>'
+        };
+    </script>
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="app-layout">
+    <!-- Header / Navigation Bar -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand">
+                <div class="brand-logo-container">
+                    <img src="logo.png" alt="Logo Paroki Purbowardayan" class="app-brand-logo">
+                </div>
+                <div class="brand-text">
+                    <h1>SIPERU PURBOWARDAYAN</h1>
+                    <p>Sistem Informasi Peminjaman Ruang SPMR Purbowardayan</p>
+                </div>
+            </div>
+
+            <nav class="nav-links">
+                <button class="nav-item active" id="tab-calendar-btn" onclick="switchTab('calendar-section')">
+                    <i data-lucide="calendar"></i> Kalender Jadwal
+                </button>
+                <button class="nav-item user-only admin-only hidden" id="tab-my-bookings-btn"
+                    onclick="switchTab('my-bookings-section')">
+                    <i data-lucide="clock"></i> Peminjaman Saya
+                </button>
+                <button class="nav-item admin-only hidden" id="tab-admin-dashboard-btn"
+                    onclick="switchTab('admin-dashboard-section')">
+                    <i data-lucide="layout-dashboard"></i> Dasbor Admin
+                </button>
+                <button class="nav-item user-only admin-only hidden" id="tab-admin-audit-btn"
+                    onclick="switchTab('admin-audit-section')">
+                    <i data-lucide="camera"></i> Audit Kebersihan
+                </button>
+            </nav>
+
+            <div class="auth-area">
+                <!-- Theme Toggle Switch -->
+                <button class="btn btn-secondary btn-icon-only theme-toggle-btn" id="btn-theme-toggle" onclick="toggleTheme()" title="Ubah Mode Terang/Gelap">
+                    <i data-lucide="moon" id="theme-icon"></i>
+                </button>
+
+                <!-- Pusat Notifikasi (Bagian 5.2) -->
+                <div class="notification-wrap" id="notification-wrap">
+                    <button class="btn btn-secondary btn-icon-only notif-btn" onclick="toggleNotificationPanel()" title="Pusat Notifikasi">
+                        <i data-lucide="bell"></i>
+                        <span class="notif-badge" id="notif-badge">0</span>
+                    </button>
+                    <div class="notification-panel hidden" id="notification-panel">
+                        <div class="notif-header">
+                            <div class="notif-header-title">
+                                <i data-lucide="bell-ring" style="width:16px; height:16px; color:var(--brand-gold);"></i>
+                                <h4>Notifikasi Realtime</h4>
+                                <span class="notif-count-pill" id="notif-unread-pill">0 Baru</span>
+                            </div>
+                            <div class="notif-header-actions">
+                                <button class="btn-notif-action" onclick="markAllNotificationsRead()" title="Tandai Semua Sudah Dibaca">
+                                    <i data-lucide="check-check"></i>
+                                </button>
+                                <button class="btn-notif-action" onclick="clearAllNotifications()" title="Hapus Semua Riwayat">
+                                    <i data-lucide="trash-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="notif-filter-bar">
+                            <button class="notif-tab active" id="notif-tab-all" onclick="filterNotifications('all')">Semua</button>
+                            <button class="notif-tab" id="notif-tab-unread" onclick="filterNotifications('unread')">Belum Dibaca</button>
+                            <button class="notif-tab" id="notif-tab-approved" onclick="filterNotifications('approved')">Persetujuan</button>
+                        </div>
+                        <div class="notif-list" id="notif-list-items">
+                            <!-- Dimuat dinamis oleh renderNotifications() -->
+                        </div>
+                        <div class="notif-footer">
+                            <span class="text-xs text-muted"><i data-lucide="wifi" style="width:12px; height:12px; display:inline-block; vertical-align:middle; color:#10B981; margin-right:4px;"></i> Real-time Live Sync</span>
+                            <button class="btn-link-xs" onclick="markAllNotificationsRead()">Tandai Semua Dibaca</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="auth-logged-out">
+                    <button class="btn btn-primary btn-icon" id="btn-login-sso" onclick="openLoginModal()">
+                        <svg class="google-icon" viewBox="0 0 24 24" width="18" height="18"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                fill="#4285F4" />
+                            <path
+                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                fill="#34A853" />
+                            <path
+                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                                fill="#FBBC05" />
+                            <path
+                                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                                fill="#EA4335" />
+                        </svg>
+                        <span>Masuk via Google</span>
+                    </button>
+                </div>
+
+                <!-- User Profile Dropdown Menu (Bagian 5.1) -->
+                <div id="auth-logged-in" class="hidden">
+                    <div class="user-profile-menu" id="user-profile-menu">
+                        <button class="user-profile-btn" onclick="toggleUserDropdown()" id="btn-user-profile">
+                            <img id="user-avatar" src="" alt="Avatar">
+                            <div class="user-info">
+                                <span id="user-display-name">Nama User</span>
+                                <span id="user-role-badge" class="badge">User</span>
+                            </div>
+                            <i data-lucide="chevron-down" class="dropdown-arrow"></i>
+                        </button>
+                        <div class="profile-dropdown-content hidden" id="profile-dropdown-content">
+                            <div class="dropdown-header">
+                                <strong id="dropdown-user-name">Nama User</strong>
+                                <span class="text-xs text-muted" id="dropdown-user-email">email@gereja.id</span>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item" onclick="switchTab('my-bookings-section'); toggleUserDropdown();">
+                                <i data-lucide="clock"></i> Riwayat Peminjaman
+                            </button>
+                            <button class="dropdown-item" onclick="alert('Fitur pengaturan akun dalam pengembangan.'); toggleUserDropdown();">
+                                <i data-lucide="settings"></i> Pengaturan Akun
+                            </button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item text-danger" onclick="logout(); toggleUserDropdown();">
+                                <i data-lucide="log-out"></i> Keluar (Logout)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-content">
+
+        <!-- SECTION 1: Kalender Jadwal (Publik & Semua) -->
+        <section id="calendar-section" class="tab-content active">
+            <div class="grid-layout">
+                <!-- Sidebar Filter Ruangan & Date Picker (Bagian 1.2 & 4.1 & 4.2) -->
+                <aside class="sidebar-card">
+                    <div class="card-header-flex">
+                        <h3>Daftar Ruangan</h3>
+                        <button class="btn btn-text btn-sm" id="btn-reset-filter" onclick="clearRoomFilters()" disabled>Reset Filter</button>
+                    </div>
+
+                    <!-- Search Ruangan Input (Bagian 4.2) -->
+                    <div class="search-input-wrap margin-top-xs margin-bottom-sm">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" id="room-search-input" class="form-control form-control-sm" placeholder="Cari nama ruangan..." oninput="filterRoomList()">
+                    </div>
+
+                    <!-- Filter Kategori Ruangan (Bagian 4.2) -->
+                    <div class="room-category-filters margin-bottom-sm">
+                        <button class="cat-pill active" onclick="setRoomCategory('all')">Semua</button>
+                        <button class="cat-pill" onclick="setRoomCategory('indoor')">Indoor</button>
+                        <button class="cat-pill" onclick="setRoomCategory('outdoor')">Open-air</button>
+                        <button class="cat-pill" onclick="setRoomCategory('large')">Kapasitas &gt; 100</button>
+                    </div>
+
+                    <!-- Date Range Picker Interaktif & Quick Presets (Bagian 4.1) -->
+                    <div class="date-picker-group margin-bottom-sm">
+                        <label for="avail-check-date" class="text-xs text-muted"><strong>Pilih Rentang / Tanggal:</strong></label>
+                        <input type="date" id="avail-check-date" class="form-control form-control-sm" onchange="refreshFilterAvailability()">
+                        <div class="quick-date-shortcuts margin-top-xs">
+                            <button type="button" class="btn-shortcut" onclick="setCalendarQuickDate('today')">Hari Ini</button>
+                            <button type="button" class="btn-shortcut" onclick="setCalendarQuickDate('weekend')">Akhir Pekan</button>
+                            <button type="button" class="btn-shortcut" onclick="setCalendarQuickDate('next_week')">Minggu Depan</button>
+                            <button type="button" class="btn-shortcut" onclick="setCalendarQuickDate('month')">Bulan Ini</button>
+                            <button type="button" class="btn-shortcut" onclick="setCalendarQuickDate('next_month')">Bulan Depan</button>
+                            <button type="button" class="btn-shortcut" onclick="setCalendarQuickDate('next_year')">Tahun Depan</button>
+                        </div>
+                    </div>
+
+                    <p class="subtitle text-xs text-muted">Pilih ruangan untuk menyaring jadwal kalender:</p>
+                    <div class="room-filter-list" id="room-filters-container">
+                        <!-- Dynamic Rooms Checkbox list with capacity badge will be generated here -->
+                    </div>
+                </aside>
+
+                <!-- Calendar Area -->
+                <div class="calendar-card">
+                    <!-- Status Legend Bar (Bagian 3.2 & 2.2) -->
+                    <div class="status-legend-bar" id="calendar-legend-bar">
+                        <span class="legend-title">Status Kegiatan:</span>
+                        <span class="legend-item"><span class="status-dot dot-approved"></span> Disetujui (Approved)</span>
+                        <span class="legend-item"><span class="status-dot dot-pending"></span> Menunggu (Pending)</span>
+                        <span class="legend-item user-only admin-only hidden" id="legend-revision"><span class="status-dot dot-revision"></span> Permohonan Revisi</span>
+                    </div>
+
+                    <div class="calendar-controls">
+                        <div class="calendar-nav">
+                            <button class="btn btn-secondary btn-icon-only" onclick="navigateCalendar(-1)"
+                                title="Sebelumnya">
+                                <i data-lucide="chevron-left"></i>
+                            </button>
+                            
+                            <!-- Dropdown Pemilih Bulan & Tahun Cepat -->
+                            <div class="calendar-select-group">
+                                <select id="calendar-month-select" class="form-control form-control-sm calendar-dropdown" onchange="jumpCalendarMonthYear()" title="Pilih Bulan">
+                                    <option value="0">Januari</option>
+                                    <option value="1">Februari</option>
+                                    <option value="2">Maret</option>
+                                    <option value="3">April</option>
+                                    <option value="4">Mei</option>
+                                    <option value="5">Juni</option>
+                                    <option value="6">Juli</option>
+                                    <option value="7">Agustus</option>
+                                    <option value="8">September</option>
+                                    <option value="9">Oktober</option>
+                                    <option value="10">November</option>
+                                    <option value="11">Desember</option>
+                                </select>
+                                <select id="calendar-year-select" class="form-control form-control-sm calendar-dropdown" onchange="jumpCalendarMonthYear()" title="Pilih Tahun">
+                                    <!-- Dynamic years will be populated (2024 s/d 2036+) -->
+                                </select>
+                            </div>
+
+                            <button class="btn btn-secondary btn-icon-only" onclick="navigateCalendar(1)"
+                                title="Berikutnya">
+                                <i data-lucide="chevron-right"></i>
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="goToday()">Hari Ini</button>
+                        </div>
+
+                        <div class="calendar-actions">
+                            <div class="view-selector">
+                                <button class="view-btn active" id="view-month"
+                                    onclick="changeCalendarView('month')">Bulan</button>
+                                <button class="view-btn" id="view-week"
+                                    onclick="changeCalendarView('week')">Minggu</button>
+                                <button class="view-btn" id="view-day" onclick="changeCalendarView('day')">Hari</button>
+                                <button class="view-btn" id="view-agenda" onclick="changeCalendarView('agenda')">
+                                    <i data-lucide="list"></i> Agenda
+                                </button>
+                            </div>
+
+                            <button class="btn btn-secondary btn-sm btn-icon" onclick="exportToICalendar()" title="Sync iCal / Google Calendar">
+                                <i data-lucide="share-2"></i> Ekspor Kalender
+                            </button>
+
+                            <button class="btn btn-primary user-only admin-only hidden" onclick="openBookingModal()"
+                                id="btn-add-booking-quick">
+                                <i data-lucide="plus"></i> Ajukan Peminjaman
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Calendar Grid Container & Skeleton Loading (Bagian 1.1) -->
+                    <div class="calendar-grid-container" id="calendar-grid-wrapper">
+                        <!-- Calendar headers and days will be generated dynamically by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: Peminjaman Saya (Hanya User / Admin logged in) -->
+        <section id="my-bookings-section" class="tab-content hidden">
+            <div class="card-header-flex main-section-header">
+                <div>
+                    <h2>Peminjaman Saya</h2>
+                    <p class="subtitle">Kelola pengajuan peminjaman ruangan Anda, edit jadwal, dan unggah dokumentasi kebersihan.</p>
+                </div>
+                <div class="section-actions-row">
+                    <button class="btn btn-secondary btn-icon" onclick="window.print()">
+                        <i data-lucide="printer"></i> Cetak / PDF
+                    </button>
+                    <button class="btn btn-primary" onclick="openBookingModal()">
+                        <i data-lucide="plus"></i> Buat Pengajuan Baru
+                    </button>
+                </div>
+            </div>
+
+            <!-- Toolbar Filter & Search -->
+            <div class="table-toolbar shadow-card margin-bottom-sm">
+                <div class="search-input-wrap">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="my-bookings-search" class="form-control" placeholder="Cari acara, ruangan, atau tanggal..." oninput="filterMyBookings()">
+                </div>
+                <div class="filter-select-wrap">
+                    <select id="my-bookings-status-filter" class="form-control" onchange="filterMyBookings()">
+                        <option value="all">Semua Status</option>
+                        <option value="APPROVED">Disetujui (Approved)</option>
+                        <option value="PENDING">Menunggu (Pending)</option>
+                        <option value="REVISION">Revisi (Revision)</option>
+                        <option value="REJECTED">Ditolak (Rejected)</option>
+                        <option value="CANCELLED">Dibatalkan (Cancelled)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Booking List Table / Cards -->
+            <div class="table-container shadow-card">
+                <table class="data-table" id="my-bookings-table">
+                    <thead>
+                        <tr>
+                            <th>Detail Acara & Ruangan</th>
+                            <th>Waktu Peminjaman</th>
+                            <th>Status Pengajuan</th>
+                            <th>Audit Kebersihan</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="my-bookings-tbody">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+                <div class="empty-state hidden" id="my-bookings-empty">
+                    <i data-lucide="calendar"></i>
+                    <p>Anda belum memiliki riwayat pengajuan peminjaman.</p>
+                    <button class="btn btn-primary btn-sm" onclick="openBookingModal()">Ajukan Sekarang</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: Admin Dashboard (Hanya Admin) -->
+        <section id="admin-dashboard-section" class="tab-content hidden">
+            <div class="main-section-header">
+                <h2>Dasbor Manajemen Peminjaman</h2>
+                <p class="subtitle">Tinjau, setujui, tolak, atau sesuaikan jadwal pengajuan peminjaman ruangan dari seluruh jemaat.</p>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon pending"><i data-lucide="clock"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stat-pending-count">0</span>
+                        <span class="stat-label">Menunggu Persetujuan</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon approved"><i data-lucide="check"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stat-approved-count">0</span>
+                        <span class="stat-label">Disetujui</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon revision"><i data-lucide="edit-3"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stat-revision-count">0</span>
+                        <span class="stat-label">Permohonan Revisi</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon rooms"><i data-lucide="building"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value">12</span>
+                        <span class="stat-label">Total Ruang/Gedung</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Approvals Table -->
+            <div class="table-container shadow-card margin-top">
+                <div class="table-header-title card-header-flex">
+                    <h3>Daftar Antrean Pengajuan & Revisi</h3>
+                    <div class="admin-table-actions">
+                        <button class="btn btn-secondary btn-sm btn-icon" onclick="exportBookingsToCSV()">
+                            <i data-lucide="download"></i> Ekspor CSV
+                        </button>
+                        <button class="btn btn-secondary btn-sm btn-icon" onclick="window.print()">
+                            <i data-lucide="printer"></i> Cetak Laporan
+                        </button>
+                    </div>
+                </div>
+                <!-- Admin Search Toolbar -->
+                <div class="table-toolbar padding-sm">
+                    <div class="search-input-wrap" style="width: 100%;">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" id="admin-search-input" class="form-control form-control-sm" placeholder="Cari berdasarkan nama peminjam, email, atau nama kegiatan..." oninput="filterAdminApprovals()">
+                    </div>
+                </div>
+                <table class="data-table" id="admin-approvals-table">
+                    <thead>
+                        <tr>
+                            <th>Peminjam</th>
+                            <th>Ruangan & Acara</th>
+                            <th>Jadwal Diajukan</th>
+                            <th>Status Saat Ini</th>
+                            <th>Aksi Approval</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-approvals-tbody">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+                <div class="empty-state hidden" id="admin-approvals-empty">
+                    <i data-lucide="check"></i>
+                    <p>Semua pengajuan telah diproses. Bersih!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: Admin Audit Kebersihan (Hanya Admin) -->
+        <section id="admin-audit-section" class="tab-content hidden">
+            <div class="main-section-header">
+                <h2>Dasbor Inspeksi Kebersihan & Kerapian</h2>
+                <p class="subtitle">Audit dokumentasi foto Before & After penggunaan ruangan untuk menjamin pemeliharaan fasilitas gereja.</p>
+            </div>
+
+            <!-- Filter Audit -->
+            <div class="filter-bar shadow-card">
+                <div class="filter-group">
+                    <label for="audit-room-filter">Filter Ruangan:</label>
+                    <select id="audit-room-filter" class="form-control" onchange="renderAuditGallery()">
+                        <option value="all">Semua Ruangan</option>
+                        <!-- Dynamic options -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- Audit Grid Gallery -->
+            <div class="audit-grid" id="audit-gallery-container">
+                <!-- Dynamic cards with side-by-side Before/After comparison -->
+            </div>
+            <div class="empty-state hidden" id="admin-audit-empty">
+                <i data-lucide="camera"></i>
+                <p>Belum ada dokumentasi foto yang diunggah untuk ruangan terpilih.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER Flexbox Layout (Bagian 1.3) -->
+    <footer class="app-footer">
+        <div class="footer-container">
+            <p>&copy; 2026 Gereja Katolik SPMR Purbowardayan Surakarta &bull; SIPERU PURBOWARDAYAN (Sistem Informasi Peminjaman Ruang)</p>
+            <p class="footer-subtext">Akuntabilitas, Transparansi & Keteraturan Gedung Pelayanan Umat Berlandaskan Kasih.</p>
+        </div>
+    </footer>
+
+    <!-- Hover Event Tooltip Popover (Bagian 3.3) -->
+    <div id="calendar-event-tooltip" class="event-tooltip hidden">
+        <div class="tooltip-header">
+            <span class="tooltip-status badge" id="tt-status">Approved</span>
+            <span class="tooltip-time" id="tt-time">08:00 - 10:00</span>
+        </div>
+        <h4 id="tt-title">Nama Acara</h4>
+        <div class="tooltip-meta">
+            <div><i data-lucide="building"></i> <span id="tt-room">Ruang Fransiskus</span></div>
+            <div><i data-lucide="user"></i> <span id="tt-applicant">Dewan Paroki</span></div>
+        </div>
+    </div>
+
+    <!-- MODAL 1: Login Google SSO (Bespoke Fast Authentication) -->
+    <div id="login-modal" class="modal-backdrop hidden">
+        <div class="modal-card modal-sm">
+            <div class="modal-header">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <svg viewBox="0 0 24 24" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05" />
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
+                    </svg>
+                    <h3 style="font-size:1.05rem; margin:0;">Login Google SSO</h3>
+                </div>
+                <button class="modal-close-btn" onclick="closeModal('login-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-xs text-muted margin-bottom">Pilih akun Google Anda untuk masuk ke SIPERU SPMR Purbowardayan:</p>
+
+                <div class="login-options" style="display:flex; flex-direction:column; gap:12px;">
+                    <!-- Official Google Sign-In Button Container -->
+                    <div id="g_id_onload"
+                         data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
+                         data-context="signin"
+                         data-ux_mode="popup"
+                         data-callback="handleGoogleCredentialResponse"
+                         data-auto_prompt="false">
+                    </div>
+                    <div class="g_id_signin" 
+                         style="display:flex; justify-content:center; margin-bottom:2px;"
+                         data-type="standard"
+                         data-shape="rectangular"
+                         data-theme="outline"
+                         data-text="signin_with"
+                         data-size="large"
+                         data-logo_alignment="left">
+                    </div>
+
+                    <!-- Custom Google Button Fallback / Quick Login -->
+                    <button class="btn btn-secondary btn-full btn-align-left" onclick="triggerGoogleOneTapLogin()" style="padding:12px 14px; border-radius:8px; display:flex; align-items:center; gap:12px; border:1px solid #4285F4; background:rgba(66, 133, 244, 0.08); cursor:pointer;">
+                        <svg class="google-icon" viewBox="0 0 24 24" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05" />
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
+                        </svg>
+                        <div style="flex:1; text-align:left;">
+                            <div style="font-weight:700; font-size:0.88rem; color:var(--text-main);">Masuk dengan Akun Google Saya</div>
+                            <span class="block text-muted text-xs">Pilih akun Google Anda langsung</span>
+                        </div>
+                    </button>
+
+                    <div style="display:flex; align-items:center; gap:10px; margin:4px 0;">
+                        <div style="flex:1; height:1px; background:var(--brand-border);"></div>
+                        <span style="font-size:0.68rem; color:var(--text-light); text-transform:uppercase; font-weight:700;">Atau Masukkan Email Google</span>
+                        <div style="flex:1; height:1px; background:var(--brand-border);"></div>
+                    </div>
+
+                    <div class="form-group text-left" style="margin-bottom:0;">
+                        <label for="custom-email" style="font-size:0.75rem; font-weight:600; margin-bottom:6px; display:block;">Email Akun Google Anda:</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="email" id="custom-email" class="form-control" placeholder="nama@gmail.com" value="" onkeydown="if(event.key==='Enter') simulateCustomLogin()" style="flex:1;">
+                            <button type="button" class="btn btn-primary" onclick="simulateCustomLogin()" style="padding:8px 18px; font-weight:700;">Masuk</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Multi-Step Booking Wizard Form (Bagian 7.1) -->
+    <div id="booking-modal" class="modal-backdrop hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="booking-modal-title">Formulir Pengajuan Peminjaman</h3>
+                <button class="modal-close-btn" onclick="closeModal('booking-modal')">&times;</button>
+            </div>
+
+            <!-- Step Indicator Wizard -->
+            <div class="step-wizard-bar">
+                <div class="step-item active" id="step-tab-1">
+                    <span class="step-num">1</span>
+                    <span class="step-label">Ruang & Waktu</span>
+                </div>
+                <div class="step-line" id="step-line-1"></div>
+                <div class="step-item" id="step-tab-2">
+                    <span class="step-num">2</span>
+                    <span class="step-label">Detail Acara</span>
+                </div>
+                <div class="step-line" id="step-line-2"></div>
+                <div class="step-item" id="step-tab-3">
+                    <span class="step-num">3</span>
+                    <span class="step-label">Fasilitas & Konfirmasi</span>
+                </div>
+            </div>
+
+            <div class="modal-body">
+                <form id="booking-form" onsubmit="handleBookingSubmit(event)">
+                    <input type="hidden" id="booking-edit-id" value="">
+
+                    <!-- STEP 1: Ruang, Tanggal & Waktu -->
+                    <div class="wizard-step-panel active" id="wizard-step-1">
+                        <div class="form-grid">
+                            <div class="form-group span-2">
+                                <label for="booking-room-id">Pilih Ruangan / Fasilitas: <span class="required">*</span></label>
+                                <select id="booking-room-id" class="form-control" required>
+                                    <option value="" disabled selected>Pilih Ruangan</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group span-2">
+                                <label for="booking-date">Tanggal Peminjaman: <span class="required">*</span></label>
+                                <input type="date" id="booking-date" class="form-control" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="booking-start-time">Jam Mulai: <span class="required">*</span></label>
+                                <input type="time" id="booking-start-time" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="booking-end-time">Jam Selesai: <span class="required">*</span></label>
+                                <input type="time" id="booking-end-time" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: Detail Kegiatan & Komunitas -->
+                    <div class="wizard-step-panel hidden" id="wizard-step-2">
+                        <div class="form-grid">
+                            <div class="form-group span-2">
+                                <label for="booking-event-name">Nama Acara / Kegiatan: <span class="required">*</span></label>
+                                <input type="text" id="booking-event-name" class="form-control" required placeholder="Contoh: Rapat Dewan Paroki Harian">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="booking-applicant">Nama Komunitas / Lingkungan: <span class="required">*</span></label>
+                                <input type="text" id="booking-applicant" class="form-control" required placeholder="Contoh: OMK / Wilayah Maria">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="booking-participants">Estimasi Jumlah Peserta:</label>
+                                <input type="number" id="booking-participants" class="form-control" placeholder="Contoh: 30 orang" min="1">
+                            </div>
+
+                            <div class="form-group span-2">
+                                <label for="booking-desc">Deskripsi & Peruntukan Kegiatan:</label>
+                                <textarea id="booking-desc" class="form-control" rows="3" placeholder="Jelaskan agenda acara secara singkat..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: Fasilitas & Konfirmasi -->
+                    <div class="wizard-step-panel hidden" id="wizard-step-3">
+                        <div class="form-group span-2">
+                            <label>Kebutuhan Fasilitas Tambahan:</label>
+                            <div class="facility-checkbox-grid">
+                                <label class="facility-option"><input type="checkbox" id="fac-sound"> Sound System & Mic</label>
+                                <label class="facility-option"><input type="checkbox" id="fac-lcd"> LCD Proyektor & Screen</label>
+                                <label class="facility-option"><input type="checkbox" id="fac-chairs"> Kursi Ekstra (>50)</label>
+                                <label class="facility-option"><input type="checkbox" id="fac-ac"> Pendingin Ruangan (AC)</label>
+                            </div>
+                        </div>
+
+                        <!-- Ringkasan Konfirmasi -->
+                        <div class="commitment-card padding-sm margin-top-sm">
+                            <h4><i data-lucide="info"></i> Ketentuan Kebersihan Ruang</h4>
+                            <p class="text-xs text-muted">Peminjam wajib menjaga kerapian serta mengunggah foto sebelum dan sesudah kegiatan pada menu <strong>Peminjaman Saya</strong>.</p>
+                        </div>
+                    </div>
+
+                    <!-- Alert Box for Collision / Warnings -->
+                    <div id="booking-error-alert" class="alert alert-danger hidden margin-top-sm">
+                        <i data-lucide="alert-triangle"></i>
+                        <span id="booking-error-text">Waktu peminjaman bertabrakan dengan jadwal lain!</span>
+                    </div>
+
+                    <div id="booking-revision-info" class="alert alert-info hidden margin-top-sm">
+                        <i data-lucide="info"></i>
+                        <span><strong>Catatan Revisi:</strong> Pengeditan pada peminjaman yang telah <strong>APPROVED</strong> akan diajukan sebagai <strong>Permohonan Revisi</strong> baru dan memerlukan persetujuan ulang dari Admin.</span>
+                    </div>
+
+                    <div class="modal-footer margin-top">
+                        <button type="button" class="btn btn-secondary" id="btn-wizard-prev" onclick="prevWizardStep()" style="display:none;">Sebelumnya</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('booking-modal')">Batal</button>
+                        <button type="button" class="btn btn-primary" id="btn-wizard-next" onclick="nextWizardStep()">Lanjut ke Langkah 2</button>
+                        <button type="submit" class="btn btn-primary hidden" id="btn-booking-submit">Kirim Pengajuan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Unggah Foto Dokumentasi Kebersihan (Before / After) -->
+    <div id="upload-photo-modal" class="modal-backdrop hidden">
+        <div class="modal-card modal-sm">
+            <div class="modal-header">
+                <h3 id="upload-modal-title">Unggah Foto Ruangan</h3>
+                <button class="modal-close-btn" onclick="closeModal('upload-photo-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="upload-booking-id">
+                <input type="hidden" id="upload-photo-type"> <!-- 'before' atau 'after' -->
+
+                <div class="upload-area" id="upload-area-box" onclick="triggerFileInput()">
+                    <i data-lucide="camera" class="upload-icon"></i>
+                    <p class="upload-text">Klik untuk Ambil Gambar atau Pilih File Foto</p>
+                    <input type="file" id="photo-file-input" accept="image/*" class="hidden-input"
+                        style="display: none;" onchange="handlePhotoFileSelected(event)">
+                </div>
+
+                <!-- Camera Webcam Live Stream Section -->
+                <div id="camera-section" class="camera-wrapper hidden text-center">
+                    <video id="camera-video" class="camera-video-preview" autoplay playsinline></video>
+                    <canvas id="camera-canvas" style="display: none;"></canvas>
+                    <div class="camera-controls margin-top-sm">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="stopCamera(); removePhotoSelection();">Batal</button>
+                        <button type="button" class="btn btn-primary btn-sm" id="btn-capture-photo" onclick="capturePhoto()" disabled>
+                            <i data-lucide="camera"></i> Tangkap Foto
+                        </button>
+                    </div>
+                </div>
+
+                <div id="photo-preview-container" class="hidden text-center margin-top">
+                    <img id="photo-preview-img" src="" class="preview-img" alt="Preview Foto">
+                    <button class="btn btn-danger btn-sm margin-top-sm" onclick="removePhotoSelection()">
+                        <i data-lucide="trash"></i> Ganti Foto
+                    </button>
+                </div>
+
+                <div class="photo-simulators margin-top">
+                    <button type="button" class="btn btn-outline btn-full margin-bottom-sm" onclick="startCamera()">
+                        <i data-lucide="camera"></i> Gunakan Kamera Webcam
+                    </button>
+                    <p class="text-xs text-muted text-center margin-bottom-sm">Atau gunakan foto demo cepat:</p>
+                    <div class="sim-buttons">
+                        <button class="btn btn-secondary btn-xs" onclick="simulatePhotoUpload('dirty')">Foto Sebelum (Before)</button>
+                        <button class="btn btn-secondary btn-xs" onclick="simulatePhotoUpload('clean')">Foto Sesudah (After)</button>
+                    </div>
+                </div>
+
+                <div class="modal-footer margin-top">
+                    <button class="btn btn-secondary" onclick="closeModal('upload-photo-modal')">Batal</button>
+                    <button class="btn btn-primary" id="btn-save-photo" onclick="saveUploadedPhoto()">Simpan Foto</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: Konfirmasi Penolakan Booking (Admin) -->
+    <div id="reject-modal" class="modal-backdrop hidden">
+        <div class="modal-card modal-sm">
+            <div class="modal-header">
+                <h3>Alasan Penolakan Pengajuan</h3>
+                <button class="modal-close-btn" onclick="closeModal('reject-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="reject-booking-id">
+                <div class="form-group">
+                    <label for="rejection-reason">Berikan Alasan Penolakan: <span class="required">*</span></label>
+                    <textarea id="rejection-reason" class="form-control" rows="4"
+                        placeholder="Contoh: Ruangan akan digunakan untuk persiapan perayaan Ekaristi Wilayah..."
+                        required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeModal('reject-modal')">Batal</button>
+                    <button class="btn btn-danger" onclick="submitRejection()">Tolak Pengajuan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: Detail Booking Pop-Up (Semua User/Publik) -->
+    <div id="detail-modal" class="modal-backdrop hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Detail Peminjaman Ruangan</h3>
+                <button class="modal-close-btn" onclick="closeModal('detail-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-grid">
+                    <div class="detail-main">
+                        <h2 id="detail-event-title" class="margin-bottom-sm">Rapat Paroki</h2>
+                        <div class="meta-row">
+                            <span id="detail-status-badge" class="badge">Approved</span>
+                            <span class="meta-item"><i data-lucide="building"></i> <span id="detail-room">Ruang Fransiskus</span></span>
+                        </div>
+
+                        <div class="detail-info-block margin-top">
+                            <div class="info-item">
+                                <i data-lucide="user"></i>
+                                <div>
+                                    <strong>Peminjam / Komunitas</strong>
+                                    <span id="detail-applicant">Dewan Paroki</span>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <i data-lucide="calendar"></i>
+                                <div>
+                                    <strong>Waktu Penggunaan</strong>
+                                    <span id="detail-time">Senin, 10 Agustus 2026 (08:00 - 10:00)</span>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <i data-lucide="info"></i>
+                                <div>
+                                    <strong>Peruntukan / Deskripsi</strong>
+                                    <span id="detail-description">Membahas koordinasi HUT Paroki.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="detail-rejection-block" class="alert alert-danger margin-top hidden">
+                            <h4 class="margin-bottom-xs"><i data-lucide="x"></i> Alasan Penolakan:</h4>
+                            <p id="detail-rejection-reason">Alasan penolakan di sini...</p>
+                        </div>
+
+                        <!-- Container Detail Riwayat Revisi (Sebelum vs Sesudah) -->
+                        <div id="detail-revision-block" class="revision-diff-box hidden">
+                            <div class="diff-header">
+                                <div class="diff-header-title">
+                                    <i data-lucide="edit-3"></i>
+                                    <span>Riwayat Perubahan / Revisi</span>
+                                </div>
+                                <span class="badge status-badge revision">Perlu Persetujuan</span>
+                            </div>
+                            <table class="diff-table">
+                                <thead>
+                                    <tr>
+                                        <th>Informasi</th>
+                                        <th>Sebelum Revisi</th>
+                                        <th>Pengajuan Baru (Revisi)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detail-revision-diff-tbody">
+                                    <!-- Dynamic Diff rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Photo Inspection Column -->
+                    <div class="detail-photos-audit">
+                        <h4>Dokumentasi Kebersihan Ruang</h4>
+                        <div class="comparison-pics margin-top-sm">
+                            <div class="pic-box">
+                                <span class="pic-label">Kondisi Sebelum (Before)</span>
+                                <div class="pic-wrapper" id="detail-pic-before">
+                                    <span class="no-pic-text">Belum ada foto</span>
+                                </div>
+                            </div>
+                            <div class="pic-box">
+                                <span class="pic-label">Kondisi Sesudah (After)</span>
+                                <div class="pic-wrapper" id="detail-pic-after">
+                                    <span class="no-pic-text">Belum ada foto</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div id="detail-modal-actions" class="modal-footer-actions"></div>
+                <button class="btn btn-secondary" onclick="closeModal('detail-modal')">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 6: Peringatan Kewajiban Foto Kebersihan (Obligation Warning) -->
+    <div id="photo-obligation-modal" class="modal-backdrop hidden">
+        <div class="modal-card modal-sm text-center">
+            <div class="modal-header">
+                <h3><i data-lucide="shield" style="color:var(--accent);"></i> Pengajuan Berhasil Terkirim!</h3>
+                <button class="modal-close-btn" onclick="closeModal('photo-obligation-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="photo-obligation-booking-id">
+                <div class="alert alert-info margin-bottom text-left">
+                    <p style="margin:0;">Permohonan untuk kegiatan <strong id="photo-obligation-event-name"></strong> telah berhasil dicatat.</p>
+                </div>
+                <div class="commitment-card padding-sm">
+                    <h4><i data-lucide="camera"></i> Komitmen Kebersihan Ruang</h4>
+                    <p class="text-xs text-muted" style="margin-bottom:8px;">Demi kenyamanan bersama, peminjam wajib mengunggah dokumentasi foto:</p>
+                    <ul class="text-xs" style="padding-left:18px; margin:0 0 12px 0;">
+                        <li><strong>Foto Before:</strong> Sebelum ruangan digunakan.</li>
+                        <li><strong>Foto After:</strong> Setelah selesai (ruangan bersih & rapi).</li>
+                    </ul>
+                </div>
+                <div class="modal-footer margin-top">
+                    <button class="btn btn-secondary" onclick="closeModal('photo-obligation-modal')">Nanti Saja</button>
+                    <button class="btn btn-primary" onclick="
+                        const bId = document.getElementById('photo-obligation-booking-id').value;
+                        closeModal('photo-obligation-modal');
+                        switchTab('my-bookings-section');
+                        if (bId) openUploadModal(bId, 'before');
+                    ">Upload Foto Sekarang</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Application -->
+    <script src="app.js"></script>
+</body>
+
+</html>
