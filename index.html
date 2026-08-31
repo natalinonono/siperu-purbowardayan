@@ -925,6 +925,23 @@
         </div>
     </div>
 
+    <!-- MODAL 7: Photo Lightbox Preview (Melihat Foto Before / After Secara Utuh) -->
+    <div id="photo-lightbox-modal" class="modal-backdrop hidden" style="z-index: 10005; background: rgba(0, 0, 0, 0.88); backdrop-filter: blur(12px);" onclick="closePhotoLightbox(event)">
+        <div class="lightbox-container" style="position: relative; max-width: 92vw; max-height: 90vh; display: flex; flex-direction: column; align-items: center; justify-content: center;" onclick="event.stopPropagation()">
+            <div class="lightbox-header" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; color: #fff; margin-bottom: 8px;">
+                <h4 id="lightbox-title" style="margin: 0; font-size: 1rem; color: var(--brand-gold);">Dokumentasi Foto</h4>
+                <button class="modal-close-btn" onclick="closeModal('photo-lightbox-modal')" style="font-size: 1.8rem; color: #fff; background: none; border: none; cursor: pointer;">&times;</button>
+            </div>
+            <img id="lightbox-image" src="" alt="Pratinjau Foto Utuh" style="max-width: 100%; max-height: 80vh; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.15);">
+            <div style="margin-top: 10px; display: flex; gap: 10px;">
+                <a id="lightbox-download-btn" href="#" target="_blank" download="dokumentasi_kebersihan.png" class="btn btn-secondary btn-sm" style="color: #fff;">
+                    <i data-lucide="download"></i> Unduh Foto Asli
+                </a>
+                <button class="btn btn-secondary btn-sm" onclick="closeModal('photo-lightbox-modal')">Tutup</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Script Application -->
     <script src="app.js"></script>
 </body>

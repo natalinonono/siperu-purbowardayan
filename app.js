@@ -1987,18 +1987,28 @@ function openDetailModal(bookingId) {
         revBlock.classList.add('hidden');
     }
 
-    // Tampilkan foto Before / After
+    // Tampilkan foto Before / After dengan kemampuan klik untuk melihat foto secara utuh
     const beforePicWrap = document.getElementById('detail-pic-before');
     const afterPicWrap = document.getElementById('detail-pic-after');
 
     if (booking.photo_before_url) {
-        beforePicWrap.innerHTML = `<img src="${booking.photo_before_url}" alt="Before-Use">`;
+        beforePicWrap.innerHTML = `
+            <div style="position:relative; width:100%; height:100%; cursor:pointer;" onclick="openPhotoLightbox('${booking.photo_before_url}', 'Foto Sebelum Penggunaan (Before) - ${booking.event_name}')" title="Klik untuk melihat foto utuh">
+                <img src="${booking.photo_before_url}" alt="Before-Use" style="width:100%; height:100%; object-fit:cover; border-radius:6px;">
+                <span style="position:absolute; bottom:4px; right:4px; background:rgba(0,0,0,0.7); color:#fff; font-size:0.65rem; padding:2px 6px; border-radius:4px;"><i data-lucide='maximize-2' style='width:10px; height:10px; display:inline-block; vertical-align:middle;'></i> Lihat Utuh</span>
+            </div>
+        `;
     } else {
         beforePicWrap.innerHTML = `<span class="no-pic-text">Belum diunggah</span>`;
     }
 
     if (booking.photo_after_url) {
-        afterPicWrap.innerHTML = `<img src="${booking.photo_after_url}" alt="After-Use">`;
+        afterPicWrap.innerHTML = `
+            <div style="position:relative; width:100%; height:100%; cursor:pointer;" onclick="openPhotoLightbox('${booking.photo_after_url}', 'Foto Sesudah Penggunaan (After) - ${booking.event_name}')" title="Klik untuk melihat foto utuh">
+                <img src="${booking.photo_after_url}" alt="After-Use" style="width:100%; height:100%; object-fit:cover; border-radius:6px;">
+                <span style="position:absolute; bottom:4px; right:4px; background:rgba(0,0,0,0.7); color:#fff; font-size:0.65rem; padding:2px 6px; border-radius:4px;"><i data-lucide='maximize-2' style='width:10px; height:10px; display:inline-block; vertical-align:middle;'></i> Lihat Utuh</span>
+            </div>
+        `;
     } else {
         afterPicWrap.innerHTML = `<span class="no-pic-text">Belum diunggah</span>`;
     }
@@ -2580,11 +2590,17 @@ function renderAuditGallery() {
         const dateFormatted = startD.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 
         const beforePicContent = b.photo_before_url
-            ? `<img src="${b.photo_before_url}" class="audit-img" alt="Before">`
+            ? `<div style="position:relative; width:100%; height:100%; cursor:pointer;" onclick="openPhotoLightbox('${b.photo_before_url}', 'Foto Sebelum Penggunaan (Before) - ${b.event_name}')" title="Klik untuk melihat foto utuh">
+                 <img src="${b.photo_before_url}" class="audit-img" alt="Before">
+                 <span style="position:absolute; bottom:4px; right:4px; background:rgba(0,0,0,0.7); color:#fff; font-size:0.62rem; padding:2px 5px; border-radius:4px;"><i data-lucide='maximize-2' style='width:10px; height:10px; display:inline-block; vertical-align:middle;'></i> Utuh</span>
+               </div>`
             : `<div class="audit-no-img"><i data-lucide="image"></i><span>Belum ada</span></div>`;
 
         const afterPicContent = b.photo_after_url
-            ? `<img src="${b.photo_after_url}" class="audit-img" alt="After">`
+            ? `<div style="position:relative; width:100%; height:100%; cursor:pointer;" onclick="openPhotoLightbox('${b.photo_after_url}', 'Foto Sesudah Penggunaan (After) - ${b.event_name}')" title="Klik untuk melihat foto utuh">
+                 <img src="${b.photo_after_url}" class="audit-img" alt="After">
+                 <span style="position:absolute; bottom:4px; right:4px; background:rgba(0,0,0,0.7); color:#fff; font-size:0.62rem; padding:2px 5px; border-radius:4px;"><i data-lucide='maximize-2' style='width:10px; height:10px; display:inline-block; vertical-align:middle;'></i> Utuh</span>
+               </div>`
             : `<div class="audit-no-img"><i data-lucide="image"></i><span>Belum ada</span></div>`;
 
         card.innerHTML = `
@@ -2613,6 +2629,32 @@ function renderAuditGallery() {
     });
 
     safeCreateIcons();
+}
+
+// 15. PHOTO LIGHTBOX VIEWER (Melihat Foto Before & After Secara Utuh dan Fullscreen)
+function openPhotoLightbox(photoUrl, title = 'Dokumentasi Foto Kebersihan') {
+    if (!photoUrl) return;
+
+    const modal = document.getElementById('photo-lightbox-modal');
+    const imgEl = document.getElementById('lightbox-image');
+    const titleEl = document.getElementById('lightbox-title');
+    const downloadBtn = document.getElementById('lightbox-download-btn');
+
+    if (modal && imgEl) {
+        imgEl.src = photoUrl;
+        if (titleEl) titleEl.textContent = title;
+        if (downloadBtn) {
+            downloadBtn.href = photoUrl;
+            downloadBtn.download = `${title.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
+        }
+        modal.classList.remove('hidden');
+    }
+}
+
+function closePhotoLightbox(event) {
+    if (event.target.id === 'photo-lightbox-modal') {
+        closeModal('photo-lightbox-modal');
+    }
 }
 
 // 16. FITUR INTERAKTIF BARU: TOOLTIP, WIZARD, DROPDOWN & EKSPOR (Bagian 3, 5, 6, 7)
