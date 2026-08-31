@@ -522,17 +522,13 @@ async function initApp() {
     // Terapkan tema yang tersimpan
     applyTheme(currentTheme);
 
-    // Bersihkan cache notifikasi mentah/dummy lama yang pernah tersimpan di browser
-    const legacyKeys = [
-        'spmr_notifications',
-        'spmr_notifications_admin',
-        'spmr_notifications_public',
-        'spmr_notifications_user_jemaat.aktif@gmail.com'
-    ];
-    legacyKeys.forEach(k => {
-        const item = localStorage.getItem(k);
-        if (item && (item.includes('OMK') || item.includes('notif-1') || item.includes('notif-admin-1'))) {
-            localStorage.removeItem(k);
+    // Bersihkan seluruh cache notifikasi lama/mentah dari browser pengguna
+    Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('spmr_notifications')) {
+            const val = localStorage.getItem(key);
+            if (val && (val.includes('OMK') || val.includes('notif-1') || val.includes('notif-admin-1') || val.includes('Selamat Datang') || val.includes('Pemberitahuan'))) {
+                localStorage.removeItem(key);
+            }
         }
     });
 
