@@ -536,6 +536,13 @@ async function initApp() {
         }
     });
 
+    // Bersihkan data dummy demo 'Latihan Koor & Rapat OMK' / 'b_demo_1' secara permanen jika masih ada di browser
+    const cachedBookingsRaw = localStorage.getItem('spmr_cached_bookings');
+    if (cachedBookingsRaw && cachedBookingsRaw.includes('b_demo_1')) {
+        let cleanBookings = JSON.parse(cachedBookingsRaw).filter(b => b.id !== 'b_demo_1');
+        localStorage.setItem('spmr_cached_bookings', JSON.stringify(cleanBookings));
+    }
+
     // Inisialisasi Real-Time Notifikasi & SSE
     notificationsList = loadNotificationsForCurrentRole();
     renderNotifications();
@@ -545,17 +552,20 @@ async function initApp() {
     try {
         const response = await fetch('/api/bookings');
         if (response.ok) {
-            const serverBookings = await response.json();
-            const localCachedRaw = localStorage.getItem('spmr_cached_bookings');
-            const localCached = localCachedRaw ? JSON.parse(localCachedRaw) : [];
+            let serverBookings = await response.json();
+            if (Array.isArray(serverBookings)) {
+                serverBookings = serverBookings.filter(b => b.id !== 'b_demo_1');
+            }
+            
+            let localCachedRaw = localStorage.getItem('spmr_cached_bookings');
+            let localCached = localCachedRaw ? JSON.parse(localCachedRaw) : [];
+            localCached = localCached.filter(b => b.id !== 'b_demo_1');
 
-            // Gabungkan data server dan cache lokal secara cerdas (Smart Merge agar tidak ada booking yang hilang)
+            // Gabungkan data server dan cache lokal secara cerdas
             if (Array.isArray(serverBookings) && serverBookings.length > 0) {
-                bookings = mergeBookingsData(serverBookings, localCached);
+                bookings = mergeBookingsData(serverBookings, localCached).filter(b => b.id !== 'b_demo_1');
             } else if (localCached && localCached.length > 0) {
-                // Jika server kosong karena redeploy, restore dari cache lokal
-                bookings = localCached;
-                // Sync kembali ke server agar server terisi data yang tersimpan
+                bookings = localCached.filter(b => b.id !== 'b_demo_1');
                 saveBookingsToStorage();
             } else {
                 bookings = [];
