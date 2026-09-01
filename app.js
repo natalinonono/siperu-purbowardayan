@@ -141,11 +141,65 @@ function loadNotificationsForCurrentRole() {
     return [];
 }
 
-let notificationsList = loadNotificationsForCurrentRole();
+let notificationsList = [];
 
 function saveCurrentNotifications() {
     const key = getNotificationStorageKey();
+    // 1. Simpan ke localStorage (cepat, tersedia offline)
     localStorage.setItem(key, JSON.stringify(notificationsList));
+    
+    // 2. Sync ke Google Drive (async, tidak blokir UI) untuk persistensi lintas-device
+    syncNotificationsToGoogleDrive();
+}
+
+async function syncNotificationsToGoogleDrive() {
+    if (typeof GOOGLE_DRIVE_WEBHOOK_URL === 'undefined' || !GOOGLE_DRIVE_WEBHOOK_URL) return;
+    const key = getNotificationStorageKey();
+    try {
+        await fetch(GOOGLE_DRIVE_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+                action: 'save_notifications',
+                storage_key: key,
+                notifications: notificationsList
+            })
+        });
+    } catch (e) {
+        // Jika offline, tidak apa-apa — localStorage tetap menyimpan data
+        console.warn('Notifikasi tidak tersync ke cloud (offline), data aman di localStorage.', e);
+    }
+}
+
+async function loadNotificationsWithCloudFallback() {
+    const key = getNotificationStorageKey();
+    // 1. Coba dari localStorage dulu (offline-first)
+    const localRaw = localStorage.getItem(key);
+    if (localRaw) {
+        try {
+            const localList = JSON.parse(localRaw);
+            if (Array.isArray(localList) && localList.length > 0) {
+                return localList;
+            }
+        } catch (e) {}
+    }
+    // 2. Fallback dari Google Drive jika localStorage kosong/baru
+    if (typeof GOOGLE_DRIVE_WEBHOOK_URL !== 'undefined' && GOOGLE_DRIVE_WEBHOOK_URL) {
+        try {
+            const res = await fetch(`${GOOGLE_DRIVE_WEBHOOK_URL}?action=get_notifications&key=${encodeURIComponent(key)}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    localStorage.setItem(key, JSON.stringify(data)); // cache ke local
+                    console.log(`☁️ Notifikasi dipulihkan dari Google Drive (${data.length} item)`);
+                    return data;
+                }
+            }
+        } catch (e) {
+            console.warn('Gagal memuat notifikasi dari cloud, mulai dari kosong.', e);
+        }
+    }
+    return [];
 }
 
 function initRealtimeSSE() {
@@ -522,27 +576,16 @@ async function initApp() {
     // Terapkan tema yang tersimpan
     applyTheme(currentTheme);
 
-    // Bersihkan seluruh cache notifikasi lama/mentah dari browser pengguna
-    Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('spmr_notifications')) {
-            const val = localStorage.getItem(key);
-            if (val && (val.includes('OMK') || val.includes('notif-1') || val.includes('notif-admin-1') || val.includes('Selamat Datang') || val.includes('Pemberitahuan'))) {
-                localStorage.removeItem(key);
-            }
-        }
-    });
-
-    // Bersihkan data dummy demo 'Latihan Koor & Rapat OMK' / 'b_demo_1' secara permanen jika masih ada di browser
+    // Bersihkan data dummy demo 'b_demo_1' secara permanen jika masih ada di browser
+    // CATATAN: Jangan hapus notifikasi nyata apapun — agar tidak ada miskomunikasi!
     const cachedBookingsRaw = localStorage.getItem('spmr_cached_bookings');
     if (cachedBookingsRaw && cachedBookingsRaw.includes('b_demo_1')) {
         let cleanBookings = JSON.parse(cachedBookingsRaw).filter(b => b.id !== 'b_demo_1');
         localStorage.setItem('spmr_cached_bookings', JSON.stringify(cleanBookings));
     }
 
-    // Inisialisasi Real-Time Notifikasi & SSE
-    notificationsList = loadNotificationsForCurrentRole();
-    renderNotifications();
-    initRealtimeSSE();
+    // PENTING: Jangan inisialisasi notifikasi di sini dulu.
+    // Notifikasi akan dimuat SETELAH currentUser & activeRole terdeteksi (lihat bawah).
 
     // 3a. Ambil data dari Google Drive Cloud Database & API Serverless
     try {
@@ -604,15 +647,26 @@ async function initApp() {
     renderRoomFilters();
     populateRoomSelectDropdowns();
 
-    // 3c. Deteksi sesi login aktif
+    // 3c. Deteksi sesi login aktif TERLEBIH DAHULU sebelum memuat notifikasi
     const storedUser = localStorage.getItem('spmr_user');
     if (storedUser) {
-        currentUser = JSON.parse(storedUser);
-        activeRole = currentUser.role;
-        updateRoleSelectorActiveBtn();
+        try {
+            currentUser = JSON.parse(storedUser);
+            activeRole = currentUser.role || 'USER';
+            updateRoleSelectorActiveBtn();
+        } catch (e) {
+            currentUser = null;
+            activeRole = 'PUBLIC';
+        }
     } else {
         activeRole = 'PUBLIC';
     }
+
+    // Muat notifikasi SETELAH role dideteksi agar storage key tepat
+    // Gunakan cloud fallback agar notifikasi tidak hilang di device baru
+    notificationsList = await loadNotificationsWithCloudFallback();
+    renderNotifications();
+    initRealtimeSSE();
 
     // 3d. Terapkan akses visibilitas menu sesuai peran
     applyRoleAccessControl();
@@ -863,16 +917,17 @@ function handleGoogleCredentialResponse(response) {
     localStorage.setItem('spmr_user', JSON.stringify(currentUser));
     activeRole = currentUser.role;
 
-    // Muat notifikasi spesifik akun Google ini
-    notificationsList = loadNotificationsForCurrentRole();
-    renderNotifications();
+    // Muat notifikasi spesifik user ini (dengan cloud fallback)
+    loadNotificationsWithCloudFallback().then(list => {
+        notificationsList = list;
+        renderNotifications();
+        addNotification('Login Berhasil', `Selamat datang kembali, ${name}! (${currentUser.role})`, 'system', currentUser.role, currentUser.email);
+    });
 
     updateRoleSelectorActiveBtn();
     applyRoleAccessControl();
     closeModal('login-modal');
     switchTab('calendar-section');
-
-    addNotification('Login Berhasil', `Selamat datang kembali, ${name}! (${currentUser.role})`, 'system', currentUser.role, currentUser.email);
 }
 
 function triggerGoogleOneTapLogin() {
@@ -936,15 +991,17 @@ function simulateCustomLogin() {
     localStorage.setItem('spmr_user', JSON.stringify(currentUser));
     activeRole = currentUser.role;
 
-    notificationsList = loadNotificationsForCurrentRole();
-    renderNotifications();
+    // Muat notifikasi user dengan cloud fallback
+    loadNotificationsWithCloudFallback().then(list => {
+        notificationsList = list;
+        renderNotifications();
+        addNotification('Login Berhasil', `Selamat datang, ${formattedName}! (${currentUser.role})`, 'system', currentUser.role, currentUser.email);
+    });
 
     updateRoleSelectorActiveBtn();
     applyRoleAccessControl();
     closeModal('login-modal');
     switchTab('calendar-section');
-
-    addNotification('Login Berhasil', `Selamat datang, ${formattedName}! (${currentUser.role})`, 'system', currentUser.role, currentUser.email);
 }
 
 function logout() {
@@ -952,7 +1009,7 @@ function logout() {
     activeRole = 'PUBLIC';
     localStorage.removeItem('spmr_user');
     
-    notificationsList = loadNotificationsForCurrentRole();
+    notificationsList = loadNotificationsForCurrentRole(); // Public tidak perlu cloud fallback
     renderNotifications();
 
     updateRoleSelectorActiveBtn();
