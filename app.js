@@ -544,36 +544,55 @@ async function initApp() {
     renderNotifications();
     initRealtimeSSE();
 
-    // 3a. Ambil data dari server API dengan perlindungan anti-hilang / anti-corrupt (Smart Merge & Auto-Backup)
+    // 3a. Ambil data dari Google Drive Cloud Database & API Serverless
     try {
-        const response = await fetch('/api/bookings');
-        if (response.ok) {
-            let serverBookings = await response.json();
-            if (Array.isArray(serverBookings)) {
-                serverBookings = serverBookings.filter(b => b.id !== 'b_demo_1');
-            }
-            
-            let localCachedRaw = localStorage.getItem('spmr_cached_bookings');
-            let localCached = localCachedRaw ? JSON.parse(localCachedRaw) : [];
-            localCached = localCached.filter(b => b.id !== 'b_demo_1');
+        let serverBookings = null;
 
-            // Gabungkan data server dan cache lokal secara cerdas
-            if (Array.isArray(serverBookings) && serverBookings.length > 0) {
-                bookings = mergeBookingsData(serverBookings, localCached).filter(b => b.id !== 'b_demo_1');
-            } else if (localCached && localCached.length > 0) {
-                bookings = localCached.filter(b => b.id !== 'b_demo_1');
-                saveBookingsToStorage();
-            } else {
-                bookings = [];
+        // 1. Coba tarik database resmi dari Google Drive Paroki
+        if (typeof GOOGLE_DRIVE_WEBHOOK_URL !== 'undefined' && GOOGLE_DRIVE_WEBHOOK_URL) {
+            try {
+                const gdriveRes = await fetch(GOOGLE_DRIVE_WEBHOOK_URL);
+                if (gdriveRes.ok) {
+                    const gdata = await gdriveRes.json();
+                    if (Array.isArray(gdata)) {
+                        serverBookings = gdata;
+                        console.log('✅ Database berhasil dimuat langsung dari Google Drive Paroki:', gdata.length, 'jadwal');
+                    }
+                }
+            } catch (gErr) {
+                console.warn('Google Drive sync fetch offline:', gErr);
             }
-
-            // Simpan backup permanen di localStorage
-            localStorage.setItem('spmr_cached_bookings', JSON.stringify(bookings));
-            localStorage.setItem('spmr_bookings_backup_' + new Date().toISOString().split('T')[0], JSON.stringify(bookings));
-        } else {
-            const cached = localStorage.getItem('spmr_cached_bookings');
-            bookings = cached ? JSON.parse(cached) : [];
         }
+
+        // 2. Fallback: coba dari API server Vercel jika Google Drive belum direspon
+        if (!serverBookings) {
+            const response = await fetch('/api/bookings');
+            if (response.ok) {
+                serverBookings = await response.json();
+            }
+        }
+
+        if (Array.isArray(serverBookings)) {
+            serverBookings = serverBookings.filter(b => b.id !== 'b_demo_1');
+        }
+        
+        let localCachedRaw = localStorage.getItem('spmr_cached_bookings');
+        let localCached = localCachedRaw ? JSON.parse(localCachedRaw) : [];
+        localCached = localCached.filter(b => b.id !== 'b_demo_1');
+
+        // Gabungkan data server dan cache lokal secara cerdas
+        if (Array.isArray(serverBookings) && serverBookings.length > 0) {
+            bookings = mergeBookingsData(serverBookings, localCached).filter(b => b.id !== 'b_demo_1');
+        } else if (localCached && localCached.length > 0) {
+            bookings = localCached.filter(b => b.id !== 'b_demo_1');
+            saveBookingsToStorage();
+        } else {
+            bookings = [];
+        }
+
+        // Simpan backup permanen di localStorage
+        localStorage.setItem('spmr_cached_bookings', JSON.stringify(bookings));
+        localStorage.setItem('spmr_bookings_backup_' + new Date().toISOString().split('T')[0], JSON.stringify(bookings));
     } catch (err) {
         console.warn("Server API tidak terjangkau, memuat data dari offline storage aman:", err);
         const cached = localStorage.getItem('spmr_cached_bookings');
@@ -612,13 +631,30 @@ async function initApp() {
 }
 
 async function saveBookingsToStorage() {
-    // Simpan ke localStorage terlebih dahulu untuk jaminan offline & instant feedback
+    // 1. Simpan ke localStorage terlebih dahulu untuk jaminan offline & instant feedback
     try {
         localStorage.setItem('spmr_cached_bookings', JSON.stringify(bookings));
     } catch (e) {
         console.warn("Gagal menyimpan ke localStorage:", e);
     }
 
+    // 2. Simpan ke Google Drive Database Paroki (Permanen Cloud)
+    if (typeof GOOGLE_DRIVE_WEBHOOK_URL !== 'undefined' && GOOGLE_DRIVE_WEBHOOK_URL) {
+        try {
+            fetch(GOOGLE_DRIVE_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: 'save_bookings',
+                    bookings: bookings
+                })
+            }).catch(e => console.warn('Gdrive save background:', e));
+        } catch (err) {
+            console.error('Gagal sync ke Google Drive database:', err);
+        }
+    }
+
+    // 3. Simpan juga ke endpoint Vercel API
     try {
         await fetch('/api/bookings', {
             method: 'POST',
