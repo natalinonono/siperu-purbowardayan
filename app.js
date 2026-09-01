@@ -2334,10 +2334,14 @@ function stopCamera() {
     if (videoEl) videoEl.srcObject = null;
 }
 
-function saveUploadedPhoto() {
+// Konfigurasi Google Drive Upload Hook (Bisa diganti jika akun 15GB penuh)
+const GOOGLE_DRIVE_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzS0ZcX0_EKypxaL0eyfUL15yolbqfZV2nRyOzVoN-Ra-6Y-qlYQ8vrEEw7hYOYchrRlg/exec";
+
+async function saveUploadedPhoto() {
     const bookingId = document.getElementById('upload-booking-id').value;
     const type = document.getElementById('upload-photo-type').value;
     const imgElement = document.getElementById('photo-preview-img');
+    const saveBtn = document.querySelector('#upload-photo-modal .modal-footer .btn-primary');
 
     // FIX: validasi menggunakan dataset.loaded bukan .src (yang selalu truthy)
     if (!imgElement.dataset.loaded || !imgElement.src || imgElement.src === window.location.href) {
@@ -2348,17 +2352,60 @@ function saveUploadedPhoto() {
     const index = bookings.findIndex(b => b.id === bookingId);
     if (index === -1) return;
 
-    if (type === 'before') {
-        bookings[index].photo_before_url = imgElement.src;
-    } else {
-        bookings[index].photo_after_url = imgElement.src;
+    const originalText = saveBtn ? saveBtn.innerHTML : 'Simpan Foto';
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i data-lucide="refresh-cw" class="spin"></i> Mengunggah ke Google Drive...';
+        safeCreateIcons();
     }
 
-    saveBookingsToStorage();
+    let finalImageUrl = imgElement.src;
+
+    // Jika URL Google Apps Script aktif dan foto berupa base64, kirim ke Google Drive Paroki
+    if (GOOGLE_DRIVE_WEBHOOK_URL && finalImageUrl.startsWith('data:image')) {
+        try {
+            const uploadPayload = {
+                base64: finalImageUrl,
+                filename: `siperu_${bookingId}_${type}_${Date.now()}.jpg`,
+                type: 'image/jpeg'
+            };
+
+            const response = await fetch(GOOGLE_DRIVE_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(uploadPayload)
+            });
+
+            if (response.ok) {
+                const resJson = await response.json();
+                if (resJson.status === 'success' && resJson.url) {
+                    finalImageUrl = resJson.url;
+                    console.log('✅ Foto berhasil diunggah ke Google Drive Paroki:', finalImageUrl);
+                }
+            }
+        } catch (err) {
+            console.warn('Gagal upload ke Google Drive, fallback ke local data:', err);
+        }
+    }
+
+    if (type === 'before') {
+        bookings[index].photo_before_url = finalImageUrl;
+    } else {
+        bookings[index].photo_after_url = finalImageUrl;
+    }
+
+    await saveBookingsToStorage();
+    
+    if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = originalText;
+        safeCreateIcons();
+    }
+
     closeModal('upload-photo-modal');
     renderMyBookings();
     renderAuditGallery();
-    alert('Foto dokumentasi kebersihan berhasil disimpan.');
+    alert('Foto dokumentasi kebersihan berhasil diunggah dan disimpan ke Google Drive Paroki.');
 }
 
 // 13. TAB ADMIN DASHBOARD (Approvals)

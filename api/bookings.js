@@ -5,16 +5,26 @@ const mongoose = require('mongoose');
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
-let isMongoConnected = false;
+let cachedDb = null;
 
-if (MONGODB_URI) {
-    mongoose.connect(MONGODB_URI)
-        .then(() => {
-            isMongoConnected = true;
-        })
-        .catch(err => {
-            isMongoConnected = false;
+async function connectToDatabase() {
+    if (cachedDb && mongoose.connection.readyState >= 1) {
+        return true;
+    }
+    if (!MONGODB_URI) {
+        return false;
+    }
+    try {
+        await mongoose.connect(MONGODB_URI, {
+            serverSelectionTimeoutMS: 5000,
+            bufferCommands: false
         });
+        cachedDb = mongoose.connection;
+        return true;
+    } catch (err) {
+        console.error('MongoDB Serverless Connection Error:', err);
+        return false;
+    }
 }
 
 const BookingSchema = new mongoose.Schema({
@@ -32,13 +42,15 @@ const BookingSchema = new mongoose.Schema({
     photo_before_url: String,
     photo_after_url: String,
     rejection_reason: String,
+    revision_reason: String,
+    cancellation_reason: String,
     previous_version: mongoose.Schema.Types.Mixed,
     created_at: String
 }, { minimize: false });
 
 const Booking = mongoose.models.Booking || mongoose.model('Booking', BookingSchema);
 
-// In-Memory Cloud Storage fallback (Murni tanpa data dummy mentah)
+// In-Memory Cloud Storage fallback (jika belum pasang MONGODB_URI di Vercel)
 let memoryBookings = [];
 
 module.exports = async (req, res) => {
@@ -52,15 +64,19 @@ module.exports = async (req, res) => {
         return;
     }
 
+    const isConnected = await connectToDatabase();
+
     if (req.method === 'GET') {
-        if (isMongoConnected) {
+        if (isConnected) {
             try {
                 const docs = await Booking.find({}).lean();
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
                 res.end(JSON.stringify(docs));
                 return;
-            } catch (e) {}
+            } catch (e) {
+                console.error('Error fetching docs from MongoDB:', e);
+            }
         }
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -77,13 +93,15 @@ module.exports = async (req, res) => {
             try {
                 const parsed = JSON.parse(body);
                 memoryBookings = parsed;
-                if (isMongoConnected) {
+                if (isConnected) {
                     try {
                         await Booking.deleteMany({});
                         if (parsed && parsed.length > 0) {
                             await Booking.insertMany(parsed);
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        console.error('Error writing to MongoDB:', e);
+                    }
                 }
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
