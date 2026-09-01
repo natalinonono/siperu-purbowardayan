@@ -194,6 +194,17 @@
     <!-- Main Container -->
     <main class="main-content">
 
+        <!-- Banner Tips Tampilan Layar HP / Rekomendasi Mode Desktop -->
+        <div class="mobile-view-hint" id="mobile-hint-banner">
+            <div class="hint-content">
+                <i data-lucide="smartphone" style="width:16px; height:16px; color:var(--brand-gold); flex-shrink:0;"></i>
+                <span><strong>Tips Tampilan HP:</strong> Gunakan menu <em>"Situs Desktop / Desktop Site"</em> di browser browser HP Anda atau putar layar horisontal (Landscape) untuk visual kalender yang lebih leluasa.</span>
+            </div>
+            <button type="button" class="hint-close" onclick="document.getElementById('mobile-hint-banner').style.display='none';" title="Tutup">
+                <i data-lucide="x" style="width:14px; height:14px;"></i>
+            </button>
+        </div>
+
         <!-- SECTION 1: Kalender Jadwal (Publik & Semua) -->
         <section id="calendar-section" class="tab-content active">
             <div class="grid-layout">

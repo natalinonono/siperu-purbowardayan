@@ -2063,6 +2063,19 @@ function openDetailModal(bookingId) {
         detailActionsEl.appendChild(editBtn);
     }
 
+    if (booking.status === 'APPROVED' && isOwner) {
+        const completeBtn = document.createElement('button');
+        completeBtn.className = 'btn btn-success btn-icon';
+        completeBtn.style.background = '#10B981';
+        completeBtn.style.color = '#fff';
+        completeBtn.innerHTML = '<i data-lucide="check-circle-2"></i> Konfirmasi Acara Selesai';
+        completeBtn.onclick = () => {
+            closeModal('detail-modal');
+            confirmEventCompleted(booking.id);
+        };
+        detailActionsEl.appendChild(completeBtn);
+    }
+
     if (activeRole === 'ADMIN' && (booking.status === 'PENDING' || booking.status === 'REVISION')) {
         const approveBtn = document.createElement('button');
         approveBtn.className = 'btn btn-primary btn-icon';
@@ -2168,15 +2181,20 @@ function renderMyBookings() {
         // Foto Indicator logic
         const beforeUploaded = !!b.photo_before_url;
         const afterUploaded = !!b.photo_after_url;
+        const isFinished = b.status === 'COMPLETED';
 
         // Button Aksi logika
         let actionButtons = `<button class="btn btn-secondary btn-xs" onclick="openDetailModal('${b.id}')"><i data-lucide="info"></i> Detail</button> `;
+        
+        // Tombol Konfirmasi Selesai (Jika status APPROVED dan belum COMPLETED)
+        if (b.status === 'APPROVED') {
+            actionButtons += `<button class="btn btn-success btn-xs" onclick="confirmEventCompleted('${b.id}')" title="Tandai acara telah selesai dan unggah foto ruangan setelah digunakan" style="background:#10B981; color:#fff; border:none;"><i data-lucide="check-circle-2"></i> Selesai</button> `;
+        }
+
         if (b.status === 'PENDING' || b.status === 'APPROVED' || b.status === 'REVISION') {
             actionButtons += `<button class="btn btn-secondary btn-xs" onclick="openBookingModal('${b.id}')"><i data-lucide="edit-3"></i> Edit</button> `;
         }
-        const canCancel = activeRole === 'ADMIN'
-            ? (b.status === 'PENDING' || b.status === 'APPROVED' || b.status === 'REVISION')
-            : (b.status === 'PENDING' || b.status === 'APPROVED' || b.status === 'REVISION');
+        const canCancel = (b.status === 'PENDING' || b.status === 'APPROVED' || b.status === 'REVISION');
         if (canCancel) {
             actionButtons += `<button class="btn btn-danger btn-xs" onclick="cancelBooking('${b.id}')"><i data-lucide="trash"></i> Batal</button>`;
         }
@@ -2191,20 +2209,22 @@ function renderMyBookings() {
                 <div class="text-xs text-muted">${startStr} - ${endStr}</div>
             </td>
             <td>
-                <span class="status-badge ${b.status.toLowerCase()}">${b.status}</span>
+                <span class="status-badge ${b.status.toLowerCase()}">${b.status === 'COMPLETED' ? 'SELESAI' : b.status}</span>
             </td>
             <td>
                 <div class="photo-status-box">
-                    <button type="button" class="photo-indicator ${beforeUploaded ? 'uploaded' : ''}" onclick="openUploadModal('${b.id}', 'before')">
+                    <button type="button" class="photo-indicator ${beforeUploaded ? 'uploaded' : ''}" onclick="openUploadModal('${b.id}', 'before')" title="${beforeUploaded ? 'Foto Sebelum Sudah Diunggah (Klik untuk ubah)' : 'Klik untuk Unggah Foto Sebelum Penggunaan'}">
                         <i data-lucide="camera" style="pointer-events:none;"></i> Before
                     </button>
-                    <button type="button" class="photo-indicator ${afterUploaded ? 'uploaded' : ''}" onclick="openUploadModal('${b.id}', 'after')">
+                    <button type="button" class="photo-indicator ${afterUploaded ? 'uploaded' : (b.status === 'APPROVED' || b.status === 'COMPLETED' ? 'pulse-btn' : '')}" onclick="openUploadModal('${b.id}', 'after')" title="${afterUploaded ? 'Foto Sesudah Sudah Diunggah (Klik untuk ubah)' : 'Klik untuk Unggah Foto Setelah Acara Selesai'}">
                         <i data-lucide="camera" style="pointer-events:none;"></i> After
                     </button>
                 </div>
             </td>
             <td>
-                ${actionButtons}
+                <div class="table-actions-cell">
+                    ${actionButtons}
+                </div>
             </td>
         `;
 
@@ -2212,6 +2232,38 @@ function renderMyBookings() {
     });
 
     safeCreateIcons();
+}
+
+// Fitur Konfirmasi Acara Selesai & Unggah Foto After-Use
+function confirmEventCompleted(bookingId) {
+    const booking = bookings.find(b => b.id === bookingId);
+    if (!booking) return;
+
+    if (confirm(`Apakah acara "${booking.event_name}" sudah selesai dilaksanakan?\n\nKlik OK untuk menandai SELESAI dan membuka form unggah foto kebersihan ruangan setelah digunakan.`)) {
+        const index = bookings.findIndex(b => b.id === bookingId);
+        if (index !== -1) {
+            bookings[index].status = 'COMPLETED';
+            saveBookingsToStorage();
+            
+            addNotification(
+                'Acara Telah Selesai',
+                `Acara "${booking.event_name}" telah ditandai Selesai. Mohon unggah foto kebersihan ruangan sesudah penggunaan (After-use).`,
+                'reminder',
+                'USER',
+                booking.user_email
+            );
+            
+            renderCalendar();
+            renderMyBookings();
+            renderAdminApprovals();
+            renderAuditGallery();
+
+            // Langsung buka modal unggah foto sesudah (after)
+            setTimeout(() => {
+                openUploadModal(bookingId, 'after');
+            }, 300);
+        }
+    }
 }
 
 function cancelBooking(bookingId) {

@@ -3002,6 +3002,52 @@ textarea.form-control {
    ULTRA-POLISHED RESPONSIVE DESIGN SYSTEM (MOBILE HP, TABLET, & LAPTOP)
    ========================================================================== */
 
+/* Status Badge Selesai */
+.status-badge.completed {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10B981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.pulse-btn {
+    animation: pulseGlow 1.8s infinite;
+}
+
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+    70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Mobile Desktop-Mode Helper Banner */
+.mobile-view-hint {
+    display: none;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.08));
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin: 8px 12px 14px 12px;
+    font-size: 0.78rem;
+    color: var(--text-main);
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.mobile-view-hint .hint-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mobile-view-hint .hint-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+}
+
 /* 1. TABLET & SMALL LAPTOPS (Max 1024px) */
 @media (max-width: 1024px) {
     .header-container {
@@ -3032,12 +3078,17 @@ textarea.form-control {
 
 /* 2. SMARTPHONE & MOBILE HP (Max 768px) */
 @media (max-width: 768px) {
-    /* Header & Navigation */
+    .mobile-view-hint {
+        display: flex;
+    }
+
+    /* Header & Navigation di HP */
     .app-header {
         position: sticky;
         top: 0;
         z-index: 1000;
-        padding: 4px 0;
+        padding: 6px 0;
+        backdrop-filter: blur(12px);
     }
 
     .header-container {
@@ -3047,29 +3098,30 @@ textarea.form-control {
         padding: 8px 12px;
     }
 
-    .brand-section {
+    .brand {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        gap: 10px;
         width: 100%;
     }
 
-    .brand-logo {
-        width: 38px;
-        height: 38px;
+    .app-brand-logo {
+        width: 36px;
+        height: 36px;
     }
 
-    .brand-title h1 {
+    .brand-text h1 {
         font-size: 1.05rem;
+        letter-spacing: -0.2px;
         line-height: 1.2;
     }
 
-    .brand-title .brand-subtitle {
+    .brand-text p {
         font-size: 0.65rem;
     }
 
     /* Scrollable Horizontal Navigation */
-    .main-nav {
+    .nav-links {
         display: flex;
         overflow-x: auto;
         white-space: nowrap;
@@ -3078,7 +3130,7 @@ textarea.form-control {
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
     }
-    .main-nav::-webkit-scrollbar {
+    .nav-links::-webkit-scrollbar {
         display: none;
     }
 
@@ -3099,7 +3151,7 @@ textarea.form-control {
 
     /* Main Container & Layout */
     .main-content {
-        padding: 10px 8px 60px 8px;
+        padding: 8px 10px 80px 10px;
     }
 
     .grid-layout {
@@ -3108,29 +3160,35 @@ textarea.form-control {
         gap: 14px;
     }
 
-    .sidebar-pane {
+    .sidebar-card {
         width: 100%;
         position: static;
-        order: 2; /* Letakkan filter di bawah kalender pada layar HP agar kalender langsung terlihat */
+        order: 2; /* Filter di bawah kalender pada HP */
     }
 
-    .calendar-pane {
+    .calendar-card {
         width: 100%;
         order: 1;
-    }
-
-    /* Kalender Header & Controls di HP */
-    .calendar-card {
         padding: 12px 10px;
         border-radius: 12px;
     }
 
+    /* Status Legend Bar */
+    .status-legend-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px 10px;
+        font-size: 0.72rem;
+    }
+
+    /* Kalender Header & Controls di HP */
     .calendar-controls {
         display: flex;
         flex-direction: column;
         align-items: stretch;
         gap: 10px;
-        margin-bottom: 14px;
+        margin-bottom: 12px;
     }
 
     .calendar-nav {
@@ -3182,11 +3240,54 @@ textarea.form-control {
         justify-content: center;
     }
 
+    /* Kalender Grid di HP (Tidak Terpotong) */
+    .calendar-grid-month {
+        gap: 1px;
+        border-radius: 8px;
+    }
+
+    .calendar-header-day {
+        padding: 6px 2px;
+        font-size: 0.65rem;
+        font-weight: 700;
+    }
+
+    .calendar-cell {
+        min-height: 68px;
+        padding: 3px 2px;
+        gap: 2px;
+    }
+
+    .calendar-cell .day-number {
+        font-size: 0.72rem;
+        margin-bottom: 2px;
+    }
+
+    .calendar-cell.today .day-number {
+        width: 18px;
+        height: 18px;
+        font-size: 0.68rem;
+    }
+
+    .event-card {
+        font-size: 0.62rem;
+        padding: 3px 4px;
+        line-height: 1.2;
+        border-left-width: 2px;
+        border-radius: 4px;
+        margin-bottom: 2px;
+        word-break: break-word;
+    }
+
     /* Peminjaman Saya & Admin Toolbar di HP */
-    .card-header-flex {
+    .main-section-header {
         flex-direction: column;
         align-items: stretch;
-        gap: 12px;
+        gap: 10px;
+    }
+
+    .main-section-header h2 {
+        font-size: 1.3rem;
     }
 
     .section-actions-row {
@@ -3217,66 +3318,36 @@ textarea.form-control {
         width: 100%;
     }
 
-    /* Kalender Grid di HP (Tidak Terpotong) */
-    .calendar-grid-month {
-        gap: 1px;
-        border-radius: 8px;
-    }
-
-    .calendar-header-day {
-        padding: 6px 2px;
-        font-size: 0.65rem;
-        font-weight: 700;
-    }
-
-    .calendar-cell {
-        min-height: 72px;
-        padding: 3px 2px;
-        gap: 2px;
-    }
-
-    .calendar-cell .day-number {
-        font-size: 0.72rem;
-        margin-bottom: 2px;
-    }
-
-    .calendar-cell.today .day-number {
-        width: 18px;
-        height: 18px;
-        font-size: 0.68rem;
-    }
-
-    .event-card {
-        font-size: 0.62rem;
-        padding: 2px 4px;
-        line-height: 1.2;
-        border-left-width: 2px;
-        border-radius: 3px;
-        margin-bottom: 1px;
-    }
-
     /* Stat Cards Dashboard */
     .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
         gap: 10px;
     }
 
     .stat-card {
-        padding: 12px 14px;
+        padding: 12px 10px;
     }
 
-    /* Modal Mobile Friendly (Tidak Terpotong) */
+    .stat-value {
+        font-size: 1.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.68rem;
+    }
+
+    /* Modal Mobile Friendly (Sheet Style di mobile) */
     .modal-backdrop {
-        padding: 8px;
-        align-items: flex-end; /* Sheet style di mobile */
+        padding: 6px;
+        align-items: flex-end;
     }
 
     .modal-card {
         width: 100% !important;
         max-width: 100% !important;
         margin: 0 auto;
-        max-height: 94vh;
-        border-radius: 16px 16px 8px 8px !important;
+        max-height: 92vh;
+        border-radius: 18px 18px 8px 8px !important;
     }
 
     .modal-header {
@@ -3289,7 +3360,7 @@ textarea.form-control {
 
     .modal-body {
         padding: 12px 14px;
-        max-height: calc(94vh - 125px);
+        max-height: calc(92vh - 125px);
         overflow-y: auto;
     }
 
@@ -3325,7 +3396,7 @@ textarea.form-control {
 
     /* Step Wizard Bar */
     .step-wizard-bar {
-        padding: 8px 12px;
+        padding: 8px 10px;
     }
 
     .step-label {
@@ -3336,7 +3407,7 @@ textarea.form-control {
         margin: 0 4px;
     }
 
-    /* Tabel Responsif dengan Scroll Horisontal */
+    /* Tabel Responsif dengan Card Touch Action */
     .table-container {
         border-radius: 8px;
         overflow-x: auto;
@@ -3344,17 +3415,39 @@ textarea.form-control {
     }
 
     .data-table {
-        min-width: 620px; /* Jamin tabel tetap proporsional dan bisa di-scroll tanpa gepeng */
+        min-width: 600px;
     }
 
     .data-table th, .data-table td {
-        padding: 10px 12px;
+        padding: 10px 10px;
         font-size: 0.75rem;
     }
 
-    /* Notification Panel & Toast */
+    .table-actions-cell {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .table-actions-cell .btn {
+        padding: 5px 8px;
+        font-size: 0.7rem;
+    }
+
+    /* Photo status box */
+    .photo-status-box {
+        display: flex;
+        gap: 4px;
+    }
+
+    .photo-indicator {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+    }
+
+    /* Notification Panel */
     .notification-panel {
-        width: calc(100vw - 16px) !important;
+        width: calc(100vw - 20px) !important;
         right: -10px !important;
         max-width: 360px;
         max-height: 480px;
@@ -3366,32 +3459,28 @@ textarea.form-control {
         bottom: 10px;
     }
 
-    .toast-card {
-        width: 100%;
-        font-size: 0.8rem;
-    }
-
-    /* Diff Table Revisi */
-    .diff-table {
-        min-width: 480px;
-    }
-
-    .revision-diff-box {
-        overflow-x: auto;
+    /* Audit Gallery */
+    .gallery-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
     }
 }
 
 /* 3. EXTRA SMALL PHONES (Max 380px) */
 @media (max-width: 380px) {
     .calendar-cell {
-        min-height: 62px;
+        min-height: 58px;
     }
 
     .calendar-header-day {
         font-size: 0.58rem;
     }
 
-    .brand-title h1 {
-        font-size: 0.9rem;
+    .brand-text h1 {
+        font-size: 0.92rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
     }
 }
