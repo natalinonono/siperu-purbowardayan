@@ -1192,7 +1192,7 @@ function clearRoomFilters() {
     renderRoomFilters();
     updateResetFilterBtnState();
 }
-
+ 
 function refreshFilterAvailability() {
     renderRoomFilters();
 }
